@@ -108,6 +108,59 @@ function initStars() {
 // =========================
 // INTRO
 // =========================
+function initLoading() {
+
+  const loading = document.getElementById("loading");
+  const terminal = document.getElementById("terminal");
+  const intro = document.getElementById("intro");
+
+  if (!loading || !terminal || !intro) return;
+
+  const lines = [
+    "> booting snows.rest...",
+    "> loading music... done",
+    "> fetching discord status... done",
+    "> drawing starfield... done",
+    "> loading profile... done",
+    "> rendering interface... done",
+    "> finishing up... done",
+    "",
+    "ready."
+  ];
+
+  let index = 0;
+
+  function addLine() {
+
+    if (index >= lines.length) {
+
+      setTimeout(() => {
+        loading.classList.add("out");
+
+        setTimeout(() => {
+          loading.style.display = "none";
+          intro.style.display = "flex";
+        }, 500);
+
+      }, 800);
+
+      return;
+    }
+
+    const line = document.createElement("div");
+    line.textContent = lines[index];
+
+    terminal.appendChild(line);
+
+    index++;
+
+    setTimeout(addLine, 350);
+
+  }
+
+  addLine();
+
+}
 
 function initIntro() {
 
@@ -364,10 +417,10 @@ function updateStatus(data) {
   }
 
   const pretty = {
-    online: "Online",
-    idle: "Idle",
-    dnd: "Do Not Disturb",
-    offline: "Offline"
+    online: "online",
+    idle: "idle",
+    dnd: "do Not Disturb",
+    offline: "offline"
   };
 
   if (statusText) {
@@ -398,6 +451,7 @@ function updateStatus(data) {
 
 window.addEventListener("load", () => {
   initStars();
+    initLoading();
   initIntro();
   initNavigation();
   loadLanyard();
