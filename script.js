@@ -140,7 +140,7 @@ function initIntro() {
 
 function initNavigation() {
 
-  const tabs = document.querySelectorAll("nav.tab");
+ const tabs = document.querySelectorAll(".nav-tab");
   const content = document.getElementById("content");
 
   if (!content) return;
@@ -164,16 +164,18 @@ function initNavigation() {
 
   }
 
-  tabs.forEach(button => {
+tabs.forEach(button => {
 
-    button.addEventListener("click", () => {
+  button.addEventListener("click", () => {
 
-      setActive(button.dataset.tab);
+    tabs.forEach(btn => btn.classList.remove("active"));
+    button.classList.add("active");
 
-    });
+    setActive(button.dataset.tab);
 
   });
 
+});
   setActive("home");
 
 }
