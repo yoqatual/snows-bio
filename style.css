@@ -484,3 +484,91 @@ canvas#stars {
   font-size: 14px;
   line-height: 1.8;
 }
+.music-widget {
+  position: fixed;
+  right: 25px;
+  bottom: 25px;
+
+  width: 170px;
+  height: 190px;
+
+  background: #050505;
+  border: 1px solid #333;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 12px;
+
+  font-family: "Space Mono", monospace;
+
+  z-index: 1000;
+}
+
+
+.music-art img {
+
+  width: 70px;
+  height: 70px;
+
+  object-fit: cover;
+
+  border: 1px solid #444;
+
+}
+
+
+.music-controls {
+
+  margin-top: 12px;
+
+  display: flex;
+  gap: 12px;
+
+}
+
+
+.music-controls button {
+
+  background: transparent;
+
+  border: 1px solid #444;
+
+  color: white;
+
+  width: 25px;
+  height: 25px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+
+}
+
+
+.music-controls button:hover {
+
+  background: #222;
+
+}
+
+
+#progress {
+
+  margin-top: 15px;
+
+  width: 140px;
+
+}
+
+
+.music-time {
+
+  margin-top: 5px;
+
+  font-size: 10px;
+
+  color: #777;
+
+}
