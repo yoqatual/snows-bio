@@ -451,11 +451,17 @@ function updateStatus(data) {
 function initMusicPlayer() {
 
   const music = document.getElementById("bgMusic");
+
   const play = document.getElementById("playPause");
+  const progress = document.getElementById("progress");
 
-  if (!music || !play) return;
+  const current = document.getElementById("currentTime");
+  const duration = document.getElementById("duration");
 
-  play.onclick = () => {
+  if (!music) return;
+
+
+  play.addEventListener("click", () => {
 
     if (music.paused) {
 
@@ -469,7 +475,48 @@ function initMusicPlayer() {
 
     }
 
-  };
+  });
+
+
+  music.addEventListener("loadedmetadata", () => {
+
+    duration.textContent = formatTime(music.duration);
+
+  });
+
+
+  music.addEventListener("timeupdate", () => {
+
+    current.textContent = formatTime(music.currentTime);
+
+    progress.value =
+      (music.currentTime / music.duration) * 100;
+
+  });
+
+
+  progress.addEventListener("input", () => {
+
+    music.currentTime =
+      (progress.value / 100) * music.duration;
+
+  });
+
+
+}
+
+
+function formatTime(seconds) {
+
+  if (isNaN(seconds)) return "0:00";
+
+  const minutes = Math.floor(seconds / 60);
+
+  const secondsLeft = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+
+  return `${minutes}:${secondsLeft}`;
 
 }
 // =========================
