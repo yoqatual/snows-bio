@@ -448,15 +448,40 @@ function updateStatus(data) {
   console.log("Discord:", data);
   console.log("loaded");
 }
+function initMusicPlayer() {
+
+  const music = document.getElementById("bgMusic");
+  const play = document.getElementById("playPause");
+
+  if (!music || !play) return;
+
+  play.onclick = () => {
+
+    if (music.paused) {
+
+      music.play();
+      play.textContent = "Ⅱ";
+
+    } else {
+
+      music.pause();
+      play.textContent = "▶";
+
+    }
+
+  };
+
+}
 // =========================
 // START EVERYTHING
 // =========================
 
 window.addEventListener("load", () => {
   initStars();
-    initLoading();
+  initLoading();
   initIntro();
   initNavigation();
+  initMusicPlayer()
   loadLanyard();
 });
 const fullTitle = "snows.rest";
