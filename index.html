@@ -44,5 +44,32 @@
   <audio id="bgMusic" src="its like im not even here.mp3" preload="auto"></audio>
 
   <script src="script.js"></script>
+    <div class="music-widget">
+
+  <div class="music-art">
+    <img src="cat.png" alt="album">
+  </div>
+
+  <div class="music-controls">
+    <button>◀</button>
+    <button id="playPause">Ⅱ</button>
+    <button>▶</button>
+  </div>
+
+  <input 
+    id="progress"
+    type="range"
+    value="0"
+    min="0"
+    max="100"
+  >
+
+  <div class="music-time">
+    <span id="currentTime">0:00</span>
+    /
+    <span id="duration">0:00</span>
+  </div>
+
+</div>
 </body>
 </html>
