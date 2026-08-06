@@ -396,10 +396,13 @@ ws.onmessage = (event) => {
 
   console.log("PACKET:", packet);
 
-  if (packet.op === 0) {
-    console.log("DATA:", packet.d);
-    updateStatus(packet.d);
-  }
+ if (packet.op === 0) {
+  console.log("DATA:", packet.d);
+
+  latestDiscordData = packet.d; // Save the latest status
+
+  updateStatus(packet.d);
+}
 };
 
   ws.onerror = (e) => console.error("Lanyard error:", e);
