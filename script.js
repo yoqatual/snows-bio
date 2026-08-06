@@ -459,3 +459,22 @@ window.addEventListener("load", () => {
   initNavigation();
   loadLanyard();
 });
+const fullTitle = "snows.rest";
+
+let length = 1;
+let direction = 1;
+
+setInterval(() => {
+  document.title = fullTitle.slice(0, length);
+
+  length += direction;
+
+  if (length > fullTitle.length) {
+    length = fullTitle.length - 1;
+    direction = -1;
+  } else if (length < 1) {
+    length = 2;
+    direction = 1;
+  }
+
+}, 200);
