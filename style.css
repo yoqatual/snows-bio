@@ -489,9 +489,11 @@ canvas#stars {
   right: 25px;
   bottom: 25px;
 
-  width: 170px;
-  height: 190px;
+  width: 190px;
+  min-height: 230px;
 
+  box-sizing: border-box;
+  
   background: #050505;
   border: 1px solid #333;
 
