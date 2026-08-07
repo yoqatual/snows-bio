@@ -449,7 +449,7 @@ function updateStatus(data) {
   console.log("loaded");
 }
 function initMusicPlayer() {
-
+console.log("music player loaded");
   const music = document.getElementById("bgMusic");
 
   const play = document.getElementById("playPause");
