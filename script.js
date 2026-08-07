@@ -524,32 +524,7 @@ function initMusicPlayer() {
 }
 
 
-  music.addEventListener("loadedmetadata", () => {
-
-    duration.textContent = formatTime(music.duration);
-
-  });
-
-
-  music.addEventListener("timeupdate", () => {
-
-    current.textContent = formatTime(music.currentTime);
-
-    progress.value =
-      (music.currentTime / music.duration) * 100;
-
-  });
-
-
-  progress.addEventListener("input", () => {
-
-    music.currentTime =
-      (progress.value / 100) * music.duration;
-
-  });
-
-
-}
+ 
 
 
 function formatTime(seconds) {
