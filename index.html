@@ -42,28 +42,41 @@
 </div>
 
 
-<!-- MUSIC PLAYER -->
 <div class="music-widget">
 
-  <img class="music-art" src="cat.png">
+  <img class="music-art" src="cat.png" alt="Album Art">
 
   <div class="music-buttons">
-    <button id="prevBtn">◀</button>
+    <button id="prevBtn">⏮</button>
     <button id="playPause">▶</button>
-    <button id="nextBtn">▶</button>
+    <button id="nextBtn">⏭</button>
   </div>
 
-  <input id="progress" type="range" value="0" min="0" max="100">
+  <div class="progress-container">
+    <input
+      type="range"
+      id="progress"
+      min="0"
+      max="100"
+      value="0"
+    >
+  </div>
 
-  <div class="music-info">
+  <div class="music-time">
     <span id="currentTime">0:00</span>
-    /
+    <span>/</span>
     <span id="duration">0:00</span>
   </div>
 
-  <div class="volume-row">
-    🔊
-    <input id="volume" type="range" min="0" max="100" value="40">
+  <div class="volume-container">
+    <span>🔊</span>
+    <input
+      type="range"
+      id="volume"
+      min="0"
+      max="100"
+      value="40"
+    >
   </div>
 
 </div>
