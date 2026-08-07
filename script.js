@@ -459,51 +459,58 @@ function initMusicPlayer() {
   const progress = document.getElementById("progress");
   const volume = document.getElementById("volume");
 
-  const current = document.getElementById("currentTime");
+  const currentTime = document.getElementById("currentTime");
   const duration = document.getElementById("duration");
 
+  if (
+    !music ||
+    !play ||
+    !prev ||
+    !next ||
+    !progress ||
+    !volume
+  ) return;
 
-  if (!music) return;
+  // Default volume
+  music.volume = 0.4;
 
-
+  // Play / Pause
   play.onclick = () => {
-
     if (music.paused) {
       music.play();
-      play.textContent = "Ⅱ";
+      play.textContent = "⏸";
     } else {
       music.pause();
       play.textContent = "▶";
     }
-
   };
 
-
+  // Restart song
   prev.onclick = () => {
     music.currentTime = 0;
   };
 
-
+  // Placeholder for next song
   next.onclick = () => {
-    console.log("no next song yet");
+    music.currentTime = music.duration;
   };
 
-
+  // Song loaded
   music.onloadedmetadata = () => {
     duration.textContent = formatTime(music.duration);
   };
 
-
+  // Update timer + slider
   music.ontimeupdate = () => {
 
-    current.textContent = formatTime(music.currentTime);
+    currentTime.textContent = formatTime(music.currentTime);
 
     progress.value =
       (music.currentTime / music.duration) * 100;
 
   };
 
-
+  // Seek
   progress.oninput = () => {
 
     music.currentTime =
@@ -511,18 +518,27 @@ function initMusicPlayer() {
 
   };
 
-
+  // Volume
   volume.oninput = () => {
 
     music.volume = volume.value / 100;
 
   };
 
-
-  music.volume = 0.4;
-
 }
 
+function formatTime(seconds) {
+
+  if (isNaN(seconds)) return "0:00";
+
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
+
+  return `${m}:${s}`;
+
+}
 
  
 
