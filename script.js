@@ -453,6 +453,11 @@ console.log("music player loaded");
   const music = document.getElementById("bgMusic");
 
   const play = document.getElementById("playPause");
+  
+console.log("play button:", play);
+  console.log("prev:", prev);
+console.log("next:", next);
+console.log("volume:", volume);
   const prev = document.getElementById("prevBtn");
   const next = document.getElementById("nextBtn");
 
