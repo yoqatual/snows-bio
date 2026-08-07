@@ -476,6 +476,7 @@ function initMusicPlayer() {
 
   // Play / Pause
   play.onclick = () => {
+    console.log("play clicked");
     if (music.paused) {
       music.play();
       play.textContent = "⏸";
