@@ -453,29 +453,75 @@ function initMusicPlayer() {
   const music = document.getElementById("bgMusic");
 
   const play = document.getElementById("playPause");
+  const prev = document.getElementById("prevBtn");
+  const next = document.getElementById("nextBtn");
+
   const progress = document.getElementById("progress");
+  const volume = document.getElementById("volume");
 
   const current = document.getElementById("currentTime");
   const duration = document.getElementById("duration");
 
+
   if (!music) return;
 
 
-  play.addEventListener("click", () => {
+  play.onclick = () => {
 
     if (music.paused) {
-
       music.play();
       play.textContent = "Ⅱ";
-
     } else {
-
       music.pause();
       play.textContent = "▶";
-
     }
 
-  });
+  };
+
+
+  prev.onclick = () => {
+    music.currentTime = 0;
+  };
+
+
+  next.onclick = () => {
+    console.log("no next song yet");
+  };
+
+
+  music.onloadedmetadata = () => {
+    duration.textContent = formatTime(music.duration);
+  };
+
+
+  music.ontimeupdate = () => {
+
+    current.textContent = formatTime(music.currentTime);
+
+    progress.value =
+      (music.currentTime / music.duration) * 100;
+
+  };
+
+
+  progress.oninput = () => {
+
+    music.currentTime =
+      (progress.value / 100) * music.duration;
+
+  };
+
+
+  volume.oninput = () => {
+
+    music.volume = volume.value / 100;
+
+  };
+
+
+  music.volume = 0.4;
+
+}
 
 
   music.addEventListener("loadedmetadata", () => {
