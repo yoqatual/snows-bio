@@ -572,3 +572,145 @@ canvas#stars {
   color: #777;
 
 }
+.music-widget {
+
+  position: fixed;
+
+  right: 25px;
+  bottom: 25px;
+
+  width: 160px;
+
+  background: #050505;
+
+  border: 1px solid #333;
+
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 10px;
+
+  font-family: "Space Mono", monospace;
+
+  z-index: 999;
+
+}
+
+
+.music-art {
+
+  width: 75px;
+  height: 75px;
+
+  object-fit: cover;
+
+  border: 1px solid #444;
+
+}
+
+
+.music-buttons {
+
+  display: flex;
+
+  gap: 10px;
+
+}
+
+
+.music-buttons button {
+
+  width: 28px;
+  height: 28px;
+
+  background: transparent;
+
+  color: white;
+
+  border: 1px solid #444;
+
+  cursor: pointer;
+
+  font-size: 12px;
+
+}
+
+
+.music-buttons button:hover {
+
+  background: #222;
+
+}
+
+
+.progress-container,
+.volume-container {
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+}
+
+
+#progress {
+
+  width: 100%;
+
+}
+
+
+.volume-container {
+
+  gap: 6px;
+
+}
+
+
+#volume {
+
+  width: 100%;
+
+}
+
+
+input[type="range"] {
+
+  appearance: none;
+
+  height: 3px;
+
+  background: #444;
+
+  cursor: pointer;
+
+}
+
+
+input[type="range"]::-webkit-slider-thumb {
+
+  appearance: none;
+
+  width: 8px;
+
+  height: 8px;
+
+  background: white;
+
+  border-radius: 50%;
+
+}
+
+
+.music-time {
+
+  font-size: 10px;
+
+  color: #888;
+
+}
