@@ -193,7 +193,7 @@ function initIntro() {
 
 function initNavigation() {
 
- const tabs = document.querySelectorAll(".nav-tab");
+  const tabs = document.querySelectorAll(".nav-tab");
   const content = document.getElementById("content");
 
   if (!content) return;
@@ -217,18 +217,19 @@ function initNavigation() {
 
   }
 
-tabs.forEach(button => {
+  tabs.forEach(button => {
 
-  button.addEventListener("click", () => {
+    button.addEventListener("click", () => {
 
-    tabs.forEach(btn => btn.classList.remove("active"));
-    button.classList.add("active");
+      tabs.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
 
-    setActive(button.dataset.tab);
+      setActive(button.dataset.tab);
+
+    });
 
   });
 
-});
   setActive("home");
 
 }
@@ -391,23 +392,24 @@ function loadLanyard() {
     }));
   };
 
-ws.onmessage = (event) => {
-  const packet = JSON.parse(event.data);
+  ws.onmessage = (event) => {
+    const packet = JSON.parse(event.data);
 
-  console.log("PACKET:", packet);
+    console.log("PACKET:", packet);
 
- if (packet.op === 0) {
-  console.log("DATA:", packet.d);
+    if (packet.op === 0) {
+      console.log("DATA:", packet.d);
 
-  latestDiscordData = packet.d; // Save the latest status
+      latestDiscordData = packet.d; // Save the latest status
 
-  updateStatus(packet.d);
-}
-};
+      updateStatus(packet.d);
+    }
+  };
 
   ws.onerror = (e) => console.error("Lanyard error:", e);
   ws.onclose = () => console.log("Lanyard disconnected");
 }
+
 function updateStatus(data) {
   console.log(data);
 
@@ -448,24 +450,31 @@ function updateStatus(data) {
   console.log("Discord:", data);
   console.log("loaded");
 }
-function initMusicPlayer() {
-console.log("music player loaded");
-  const music = document.getElementById("bgMusic");
 
+// =========================
+// MUSIC PLAYER
+// =========================
+function initMusicPlayer() {
+
+  console.log("music player loaded");
+
+  // Grab every element FIRST, then log/use them.
+  // (Referencing a const before its declaration line throws
+  // a ReferenceError and silently kills the whole function —
+  // that was the bug stopping the buttons from working.)
+  const music = document.getElementById("bgMusic");
   const play = document.getElementById("playPause");
-  
-console.log("play button:", play);
-  console.log("prev:", prev);
-console.log("next:", next);
-console.log("volume:", volume);
   const prev = document.getElementById("prevBtn");
   const next = document.getElementById("nextBtn");
-
   const progress = document.getElementById("progress");
   const volume = document.getElementById("volume");
-
   const currentTime = document.getElementById("currentTime");
   const duration = document.getElementById("duration");
+
+  console.log("play button:", play);
+  console.log("prev:", prev);
+  console.log("next:", next);
+  console.log("volume:", volume);
 
   if (
     !music ||
@@ -478,6 +487,7 @@ console.log("volume:", volume);
 
   // Default volume
   music.volume = 0.4;
+  volume.value = 40;
 
   // Play / Pause
   play.onclick = () => {
@@ -537,22 +547,6 @@ function formatTime(seconds) {
 
   if (isNaN(seconds)) return "0:00";
 
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, "0");
-
-  return `${m}:${s}`;
-
-}
-
- 
-
-
-function formatTime(seconds) {
-
-  if (isNaN(seconds)) return "0:00";
-
   const minutes = Math.floor(seconds / 60);
 
   const secondsLeft = Math.floor(seconds % 60)
@@ -562,6 +556,7 @@ function formatTime(seconds) {
   return `${minutes}:${secondsLeft}`;
 
 }
+
 // =========================
 // START EVERYTHING
 // =========================
@@ -571,9 +566,10 @@ window.addEventListener("load", () => {
   initLoading();
   initIntro();
   initNavigation();
-  initMusicPlayer()
+  initMusicPlayer();
   loadLanyard();
 });
+
 const fullTitle = "snows.rest";
 
 let length = 1;
