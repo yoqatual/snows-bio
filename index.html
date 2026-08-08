@@ -3,29 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>snows.rest</title>
   <meta name="description" content="Personal Portfolio">
-
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="cat.png">
 </head>
-
 <body>
-
   <canvas id="stars"></canvas>
-<div id="loading">
-  <div id="terminal"></div>
-</div>
 
-<div id="intro" style="display:none;">
-  <span>click to enter</span>
-</div>
+  <div id="loading">
+    <div id="terminal"></div>
+  </div>
+
+  <div id="intro" style="display:none;">
+    <span>click to enter</span>
+  </div>
 
   <main id="app">
     <div class="card">
-
       <nav class="nav">
         <div class="nav-tabs">
           <button class="nav-tab active" data-tab="home">Home</button>
@@ -33,84 +29,39 @@
           <button class="nav-tab" data-tab="projects">Projects</button>
           <button class="nav-tab" data-tab="socials">Socials</button>
         </div>
-
         <div class="nav-counter" id="visitorCounter"></div>
       </nav>
+      <section class="content" id="content"></section>
+    </div>
+  </main>
 
-  <section class="content" id="content"></section>
+  <div class="music-widget">
+    <img class="music-art" src="cat.png" alt="Album Art">
 
-</div>
+    <div class="music-buttons">
+      <button id="prevBtn">⏮</button>
+      <button id="playPause">▶</button>
+      <button id="nextBtn">⏭</button>
+    </div>
 
+    <div class="progress-container">
+      <input type="range" id="progress" min="0" max="100" value="0">
+    </div>
 
-<div class="music-widget">
+    <div class="music-time">
+      <span id="currentTime">0:00</span>
+      <span>/</span>
+      <span id="duration">0:00</span>
+    </div>
 
-  <img class="music-art" src="cat.png" alt="Album Art">
-
-  <div class="music-buttons">
-    <button id="prevBtn">⏮</button>
-    <button id="playPause">▶</button>
-    <button id="nextBtn">⏭</button>
+    <div class="volume-container">
+      <span>🔊</span>
+      <input type="range" id="volume" min="0" max="100" value="40">
+    </div>
   </div>
 
-  <div class="progress-container">
-    <input
-      type="range"
-      id="progress"
-      min="0"
-      max="100"
-      value="0"
-    >
-  </div>
+  <audio id="bgMusic" src="its like im not even here.mp3" preload="auto"></audio>
 
-  <div class="music-time">
-    <span id="currentTime">0:00</span>
-    <span>/</span>
-    <span id="duration">0:00</span>
-  </div>
-
-  <div class="volume-container">
-    <span>🔊</span>
-    <input
-      type="range"
-      id="volume"
-      min="0"
-      max="100"
-      value="40"
-    >
-  </div>
-
-</div>
-
-
-<audio id="bgMusic" src="its like im not even here.mp3" preload="auto"></audio>
-
-<script src="script.js"></script>
-    <div class="music-widget">
-
-  <div class="music-art">
-    <img src="cat.png" alt="album">
-  </div>
-
-  <div class="music-controls">
-    <button>◀</button>
-    <button id="playPause">Ⅱ</button>
-    <button>▶</button>
-  </div>
-
-  <input 
-    id="progress"
-    type="range"
-    value="0"
-    min="0"
-    max="100"
-  >
-
-  <div class="music-time">
-    <span id="currentTime">0:00</span>
-    /
-    <span id="duration">0:00</span>
-  </div>
-
-</div>
+  <script src="script.js"></script>
 </body>
 </html>
