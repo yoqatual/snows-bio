@@ -124,11 +124,11 @@ function initLoading() {
 
   const lines = [
     "loading background",
-    "pre-loading music",
-    "fetching discord status",
-    "waiting for page",
+    "loading music",
+    "getting discord",
+    "loading page",
     "loading images",
-    "finishing up"
+    "finished!"
   ];
 
   let index = 0;
