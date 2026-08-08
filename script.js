@@ -9,6 +9,11 @@ const config = {
 
   avatar: "cat.png",
 
+  song: {
+    title: "its like im not even here",
+    artist: "snow"
+  },
+
   bio: [
     "hi, im snow nice to meet you.",
     "i really like gaming, piano, keyboards and sleeping ",
@@ -458,10 +463,6 @@ function initMusicPlayer() {
 
   console.log("music player loaded");
 
-  // Grab every element FIRST, then log/use them.
-  // (Referencing a const before its declaration line throws
-  // a ReferenceError and silently kills the whole function —
-  // that was the bug stopping the buttons from working.)
   const music = document.getElementById("bgMusic");
   const play = document.getElementById("playPause");
   const prev = document.getElementById("prevBtn");
@@ -470,11 +471,7 @@ function initMusicPlayer() {
   const volume = document.getElementById("volume");
   const currentTime = document.getElementById("currentTime");
   const duration = document.getElementById("duration");
-
-  console.log("play button:", play);
-  console.log("prev:", prev);
-  console.log("next:", next);
-  console.log("volume:", volume);
+  const songTitle = document.getElementById("songTitle");
 
   if (
     !music ||
@@ -485,25 +482,43 @@ function initMusicPlayer() {
     !volume
   ) return;
 
-  // Default volume
+  // Default volume + loop
   music.volume = 0.4;
+  music.loop = true;
   volume.value = 40;
+
+  // Song title
+  if (songTitle) {
+    songTitle.textContent = config.song
+      ? `${config.song.title} — ${config.song.artist}`
+      : "";
+  }
+
+  // Keep the play/pause icon in sync with what the audio is
+  // ACTUALLY doing (not just what was clicked). This also
+  // covers the case where the intro screen calls music.play()
+  // directly — the icon used to stay stuck on ▶ in that case.
+  music.addEventListener("play", () => {
+    play.textContent = "⏸";
+  });
+
+  music.addEventListener("pause", () => {
+    play.textContent = "▶";
+  });
 
   // Play / Pause
   play.onclick = () => {
-    console.log("play clicked");
     if (music.paused) {
       music.play();
-      play.textContent = "⏸";
     } else {
       music.pause();
-      play.textContent = "▶";
     }
   };
 
-  // Restart song
+  // Restart song (and keep playing)
   prev.onclick = () => {
     music.currentTime = 0;
+    music.play();
   };
 
   // Placeholder for next song
@@ -511,10 +526,21 @@ function initMusicPlayer() {
     music.currentTime = music.duration;
   };
 
-  // Song loaded
-  music.onloadedmetadata = () => {
-    duration.textContent = formatTime(music.duration);
-  };
+  // Show duration once metadata is available. preload="auto" can
+  // finish loading metadata before this listener is attached, so
+  // the "loadedmetadata" event fires and nobody catches it — that
+  // was why it stayed stuck at 0:00. Checking readyState here
+  // covers that race.
+  function setDuration() {
+    if (!isNaN(music.duration)) {
+      duration.textContent = formatTime(music.duration);
+    }
+  }
+
+  if (music.readyState >= 1) {
+    setDuration();
+  }
+  music.addEventListener("loadedmetadata", setDuration);
 
   // Update timer + slider
   music.ontimeupdate = () => {
