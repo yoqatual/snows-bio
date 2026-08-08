@@ -4,7 +4,7 @@
 
 const config = {
   name: "snow",
-  handle: "https.snows.rest",
+  handle: "snows.rest",
   role: "casual person on the internet",
 
   avatar: "cat.png",
