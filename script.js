@@ -11,12 +11,13 @@ const config = {
 
   song: {
     title: "its like im not even here",
-    artist: "snow"
+    artist: "mthu"
   },
 
   bio: [
     "hi, im snow nice to meet you.",
     "i really like gaming, piano, keyboards and sleeping ",
+    "he/him straight"
   ],
 
   projects: [
@@ -24,7 +25,7 @@ const config = {
       name: "snows.rest",
       description: "this website.",
       url: "https://snows.rest",
-      tags: ["HTML", "CSS", "JavaScript"]
+      tags: ["html", "css", "javaScript"]
     }
   ],
 
@@ -128,7 +129,7 @@ function initLoading() {
     "getting discord",
     "loading page",
     "loading images",
-    "finished!"
+    "almost done"
   ];
 
   let index = 0;
@@ -438,7 +439,7 @@ function updateStatus(data) {
   const pretty = {
     online: "online",
     idle: "idle",
-    dnd: "do Not Disturb",
+    dnd: "do not disturb",
     offline: "offline"
   };
 
