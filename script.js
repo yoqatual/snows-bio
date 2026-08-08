@@ -116,28 +116,26 @@ function initStars() {
 function initLoading() {
 
   const loading = document.getElementById("loading");
-  const terminal = document.getElementById("terminal");
+  const status = document.getElementById("loadingStatus");
   const intro = document.getElementById("intro");
 
-  if (!loading || !terminal || !intro) return;
+  if (!loading || !status || !intro) return;
 
   const lines = [
-    "> booting snows.rest...",
-    "> loading music... done",
-    "> fetching discord status... done",
-    "> drawing starfield... done",
-    "> loading profile... done",
-    "> rendering interface... done",
-    "> finishing up... done",
-    "",
-    "ready."
+    "loading music...",
+    "fetching discord status...",
+    "drawing starfield...",
+    "loading profile...",
+    "rendering interface..."
   ];
 
   let index = 0;
 
-  function addLine() {
+  function nextLine() {
 
     if (index >= lines.length) {
+
+      status.textContent = "> finished!";
 
       setTimeout(() => {
         loading.classList.add("out");
@@ -152,18 +150,15 @@ function initLoading() {
       return;
     }
 
-    const line = document.createElement("div");
-    line.textContent = lines[index];
-
-    terminal.appendChild(line);
+    status.textContent = "> " + lines[index];
 
     index++;
 
-    setTimeout(addLine, 350);
+    setTimeout(nextLine, 350);
 
   }
 
-  addLine();
+  nextLine();
 
 }
 
