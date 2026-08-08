@@ -568,3 +568,13 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 10px;
   color: #888;
 }
+
+.music-title {
+  font-size: 11px;
+  color: #ccc;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
