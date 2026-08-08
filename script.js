@@ -116,17 +116,19 @@ function initStars() {
 function initLoading() {
 
   const loading = document.getElementById("loading");
-  const status = document.getElementById("loadingStatus");
+  const header = document.getElementById("loadingHeader");
+  const list = document.getElementById("loadingList");
   const intro = document.getElementById("intro");
 
-  if (!loading || !status || !intro) return;
+  if (!loading || !header || !list || !intro) return;
 
   const lines = [
-    "loading music...",
-    "fetching discord status...",
-    "drawing starfield...",
-    "loading profile...",
-    "rendering interface..."
+    "loading background",
+    "pre-loading music",
+    "fetching discord status",
+    "waiting for page",
+    "loading images",
+    "finishing up"
   ];
 
   let index = 0;
@@ -135,7 +137,7 @@ function initLoading() {
 
     if (index >= lines.length) {
 
-      status.textContent = "> finished!";
+      header.textContent = "finished!";
 
       setTimeout(() => {
         loading.classList.add("out");
@@ -150,11 +152,23 @@ function initLoading() {
       return;
     }
 
-    status.textContent = "> " + lines[index];
+    const line = lines[index];
 
-    index++;
+    header.textContent = line + "...";
 
-    setTimeout(nextLine, 350);
+    const item = document.createElement("div");
+    item.textContent = "> " + line + "...";
+    list.appendChild(item);
+
+    setTimeout(() => {
+
+      item.textContent = "> " + line + "... done";
+
+      index++;
+
+      nextLine();
+
+    }, 350);
 
   }
 
