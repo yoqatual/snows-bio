@@ -614,4 +614,4 @@ setInterval(() => {
     direction = 1;
   }
 
-}, 200);
+}, 120);
