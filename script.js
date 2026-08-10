@@ -494,7 +494,7 @@ function initMusicPlayer() {
 
   // Default volume + loop
   music.volume = 0.4;
-  music.loop = true;
+  music.loop = false;
   volume.value = 40;
 
   // Song title
