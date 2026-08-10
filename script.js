@@ -9,16 +9,20 @@ const config = {
 
   avatar: "cat.png",
 
-  song: [{
-    title: "its like im not even here",
-    artist: "mthu"
-  },
-         { title:"girl im around u",
-           artist:"overtonight",
-           src:"girl im around u.mp3",
-           art:"girl im around u.jpg",
-         }]
-
+  songs: [
+    {
+      title: "its like im not even here",
+      artist: "mthu",
+      src: "its like im not even here.mp3",
+      art: "cat.png"
+    },
+    {
+      title: "girl im around u",
+      artist: "overtonight",
+      src: "girl im around u.mp3",
+      art: "girl im around u.jpg"
+    }
+  ],
 
   bio: [
     "hi, im snow nice to meet you.",
@@ -488,6 +492,7 @@ function initMusicPlayer() {
   const currentTime = document.getElementById("currentTime");
   const duration = document.getElementById("duration");
   const songTitle = document.getElementById("songTitle");
+  const art = document.querySelector(".music-art");
 
   if (
     !music ||
@@ -498,22 +503,49 @@ function initMusicPlayer() {
     !volume
   ) return;
 
-  // Default volume + loop
+  const songs = config.songs || [];
+  let songIndex = 0;
+
+  // Default volume
   music.volume = 0.4;
-  music.loop = false;
   volume.value = 40;
 
-  // Song title
-  if (songTitle) {
-    songTitle.textContent = config.song
-      ? `${config.song.title} — ${config.song.artist}`
-      : "";
+  function loadSong(index, autoplay) {
+
+    if (!songs.length) return;
+
+    // wrap around in both directions
+    songIndex = (index + songs.length) % songs.length;
+
+    const song = songs[songIndex];
+
+    music.src = song.src;
+
+    if (songTitle) {
+      songTitle.textContent = `${song.title} — ${song.artist}`;
+    }
+
+    if (art && song.art) {
+      art.src = song.art;
+    }
+
+    progress.value = 0;
+    currentTime.textContent = "0:00";
+    duration.textContent = "0:00";
+
+    if (autoplay) {
+      music.play();
+    }
+
   }
 
+  // Song does not loop or auto-advance right now — it just stops
+  // at the end. Want it to loop, or auto-advance to the next song
+  // in the playlist? Say the word and I'll wire that up.
+  music.loop = false;
+
   // Keep the play/pause icon in sync with what the audio is
-  // ACTUALLY doing (not just what was clicked). This also
-  // covers the case where the intro screen calls music.play()
-  // directly — the icon used to stay stuck on ▶ in that case.
+  // actually doing (covers the intro screen calling play() directly).
   music.addEventListener("play", () => {
     play.textContent = "⏸";
   });
@@ -531,31 +563,34 @@ function initMusicPlayer() {
     }
   };
 
-  // Restart song (and keep playing)
+  // Back button: restart the current song if we're more than
+  // 3 seconds in, otherwise jump to the previous song.
   prev.onclick = () => {
-    music.currentTime = 0;
-    music.play();
+    const wasPlaying = !music.paused;
+
+    if (music.currentTime > 3) {
+      music.currentTime = 0;
+      if (wasPlaying) music.play();
+    } else {
+      loadSong(songIndex - 1, wasPlaying);
+    }
   };
 
-  // Placeholder for next song
+  // Next song
   next.onclick = () => {
-    music.currentTime = music.duration;
+    const wasPlaying = !music.paused;
+    loadSong(songIndex + 1, wasPlaying);
   };
 
   // Show duration once metadata is available. preload="auto" can
   // finish loading metadata before this listener is attached, so
-  // the "loadedmetadata" event fires and nobody catches it — that
-  // was why it stayed stuck at 0:00. Checking readyState here
-  // covers that race.
+  // checking readyState here covers that race.
   function setDuration() {
     if (!isNaN(music.duration)) {
       duration.textContent = formatTime(music.duration);
     }
   }
 
-  if (music.readyState >= 1) {
-    setDuration();
-  }
   music.addEventListener("loadedmetadata", setDuration);
 
   // Update timer + slider
@@ -582,6 +617,10 @@ function initMusicPlayer() {
     music.volume = volume.value / 100;
 
   };
+
+  // Load the first song (don't autoplay here — the intro
+  // screen click is what starts playback).
+  loadSong(0, false);
 
 }
 
