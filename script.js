@@ -9,10 +9,16 @@ const config = {
 
   avatar: "cat.png",
 
-  song: {
+  song: [{
     title: "its like im not even here",
     artist: "mthu"
   },
+         { title:"girl im around u",
+           artist:"overtonight",
+           src:"girl im around u.mp3",
+           art:"girl im around u.jpg",
+         }]
+
 
   bio: [
     "hi, im snow nice to meet you.",
