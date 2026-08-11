@@ -658,6 +658,7 @@ window.addEventListener("load", () => {
   initNavigation();
   initMusicPlayer();
   loadLanyard();
+  initOnekoCat();
 });
 
 const fullTitle = "snows.rest";
