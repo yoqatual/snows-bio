@@ -545,10 +545,13 @@ function initMusicPlayer() {
 
   }
 
-  // Song does not loop or auto-advance right now — it just stops
-  // at the end. Want it to loop, or auto-advance to the next song
-  // in the playlist? Say the word and I'll wire that up.
+  // Song does not loop — when it finishes, automatically move on
+  // to the next track in the playlist and keep playing.
   music.loop = false;
+
+  music.addEventListener("ended", () => {
+    loadSong(songIndex + 1, true);
+  });
 
   // Keep the play/pause icon in sync with what the audio is
   // actually doing (covers the intro screen calling play() directly).
