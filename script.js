@@ -11,16 +11,16 @@ const config = {
 
   songs: [
     {
-      title: "its like im not even here",
-      artist: "mthu",
-      src: "its like im not even here.mp3",
-      art: "cat.png"
-    },
-    {
       title: "girl im around u",
       artist: "overtonight",
       src: "girl im around u.mp3",
       art: "girl im around u.jpg"
+    },
+    {
+      title: "its like im not even here",
+      artist: "mthu",
+      src: "its like im not even here.mp3",
+      art: "mthu.png"
     }
   ],
 
