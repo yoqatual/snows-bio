@@ -17,6 +17,12 @@ const config = {
       art: "girl im around u.jpg"
     },
     {
+      title: "shotgun",
+      artist: "overtonight",
+      src: "shotgun..mp3",
+      art: "shotgun..jpeg"
+    },
+    {
       title: "its like im not even here",
       artist: "mthu",
       src: "its like im not even here.mp3",
