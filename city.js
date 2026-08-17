@@ -29,7 +29,7 @@ function initCity() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
     groundY = height * 0.86;
-    towerX = width * 0.68;
+    towerX = width * 0.15;
     buildingLayers = LAYER_COLORS.map((color, i) =>
       generateLayer(color, i)
     );
