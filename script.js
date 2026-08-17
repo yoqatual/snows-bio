@@ -81,7 +81,7 @@ function initStars() {
 
   const stars = [];
 
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 100; i++) {
 
     stars.push({
       x: Math.random() * canvas.width,
@@ -653,6 +653,7 @@ function formatTime(seconds) {
 
 window.addEventListener("load", () => {
   initStars();
+  initCity();
   initLoading();
   initIntro();
   initNavigation();
