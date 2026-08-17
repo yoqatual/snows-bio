@@ -106,48 +106,70 @@ function initCity() {
     const H = height * 0.62; // total tower height
     const baseY = groundY;
 
-    // Key heights, working up from the ground
-    const yPodBottom = baseY - H * 0.55;
-    const yPodTop    = baseY - H * 0.68;
-    const yNeck      = baseY - H * 0.74;
-    const yMastTop   = baseY - H * 0.97;
-    const yTip       = baseY - H;
+    // Width of the tower at normalized height t (0 = base, 1 = tip).
+    // A smooth taper down to a thin mast, with a gentle rounded
+    // bulge (sine-shaped, no hard corners) for the pod.
+    function halfWidthAt(t) {
 
-    // Half-widths at each of those heights — thin shaft, one
-    // bulge for the pod, then a thin needle mast up to a point.
-    const hwBase    = 7;
-    const hwLower   = 3;
-    const hwPod     = 13;
-    const hwPostPod = 2.5;
-    const hwMast    = 1.2;
+      const wBase = 5;
+      const wNeck1 = 2.4;
+      const wNeck2 = 1.2;
+      const podBump = 8;
+
+      if (t < 0.55) {
+        const local = t / 0.55;
+        return wBase + (wNeck1 - wBase) * local;
+      }
+
+      if (t < 0.78) {
+        const local = (t - 0.55) / (0.78 - 0.55);
+        const baseline = wNeck1 + (wNeck2 - wNeck1) * local;
+        const bump = Math.sin(local * Math.PI) * podBump;
+        return baseline + bump;
+      }
+
+      const local = (t - 0.78) / (1 - 0.78);
+      return wNeck2 * (1 - local);
+
+    }
+
+    const STEPS = 36;
+    const leftPts = [];
+    const rightPts = [];
+
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const y = baseY - H * t;
+      const hw = halfWidthAt(t);
+      leftPts.push([x - hw, y]);
+      rightPts.push([x + hw, y]);
+    }
 
     ctx.fillStyle = "#5a5a5a";
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.lineWidth = 1;
 
     ctx.beginPath();
-    ctx.moveTo(x - hwBase, baseY);
-    ctx.lineTo(x - hwLower, yPodBottom);
-    ctx.lineTo(x - hwPod, yPodBottom);
-    ctx.lineTo(x - hwPod, yPodTop);
-    ctx.lineTo(x - hwPostPod, yNeck);
-    ctx.lineTo(x - hwMast, yMastTop);
-    ctx.lineTo(x, yTip);
-    ctx.lineTo(x + hwMast, yMastTop);
-    ctx.lineTo(x + hwPostPod, yNeck);
-    ctx.lineTo(x + hwPod, yPodTop);
-    ctx.lineTo(x + hwPod, yPodBottom);
-    ctx.lineTo(x + hwLower, yPodBottom);
-    ctx.lineTo(x + hwBase, baseY);
+    ctx.moveTo(leftPts[0][0], leftPts[0][1]);
+    for (let i = 1; i < leftPts.length; i++) {
+      ctx.lineTo(leftPts[i][0], leftPts[i][1]);
+    }
+    for (let i = rightPts.length - 1; i >= 0; i--) {
+      ctx.lineTo(rightPts[i][0], rightPts[i][1]);
+    }
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // A thin dark band across the pod, like the observation deck line
-    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-    ctx.fillRect(x - hwPod, yPodBottom - (yPodBottom - yPodTop) * 0.4, hwPod * 2, 3);
+    // Thin dark band across the middle of the pod bulge
+    const podPeakT = 0.665;
+    const podPeakY = baseY - H * podPeakT;
+    const podPeakHw = halfWidthAt(podPeakT);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.fillRect(x - podPeakHw, podPeakY - 1, podPeakHw * 2, 3);
 
     // Pulsing white beacon right at the tip
+    const tipY = baseY - H;
     const pulse = (Math.sin(Date.now() / 400) + 1) / 2; // 0..1
     const radius = 1.5 + pulse * 2;
 
@@ -155,7 +177,7 @@ function initCity() {
     ctx.shadowColor = "#ffffff";
     ctx.shadowBlur = 8 + pulse * 14;
     ctx.beginPath();
-    ctx.arc(x, yTip, radius, 0, Math.PI * 2);
+    ctx.arc(x, tipY, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
 
