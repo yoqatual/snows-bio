@@ -156,8 +156,8 @@ function initCity() {
 
     cars = [];
 
-    const laneY = groundY + 6;
-    const carCount = Math.max(3, Math.floor(width / 300));
+    const laneY = groundY + 8;
+    const carCount = Math.max(5, Math.floor(width / 180));
 
     for (let i = 0; i < carCount; i++) {
 
@@ -165,10 +165,10 @@ function initCity() {
 
       cars.push({
         x: Math.random() * width,
-        y: laneY + (direction > 0 ? 10 : 0),
-        speed: (0.6 + Math.random() * 1.2) * direction,
-        color: Math.random() < 0.5 ? "#ffffff" : "#999999",
-        length: 14 + Math.random() * 6
+        y: laneY + (direction > 0 ? 14 : 0),
+        speed: (0.8 + Math.random() * 1.6) * direction,
+        color: Math.random() < 0.5 ? "#ffffff" : "#dddddd",
+        length: 20 + Math.random() * 10
       });
 
     }
@@ -181,15 +181,23 @@ function initCity() {
 
       car.x += car.speed;
 
-      if (car.speed > 0 && car.x > width + 20) car.x = -20;
-      if (car.speed < 0 && car.x < -20) car.x = width + 20;
-
-      ctx.fillStyle = car.color;
-      ctx.shadowColor = car.color;
-      ctx.shadowBlur = 6;
+      if (car.speed > 0 && car.x > width + 30) car.x = -30;
+      if (car.speed < 0 && car.x < -30) car.x = width + 30;
 
       const dir = car.speed > 0 ? 1 : -1;
-      ctx.fillRect(car.x, car.y, car.length * dir, 3);
+
+      // Body
+      ctx.fillStyle = car.color;
+      ctx.shadowColor = car.color;
+      ctx.shadowBlur = 14;
+      ctx.fillRect(car.x, car.y, car.length * dir, 5);
+
+      // Bright headlight dot at the leading edge
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(car.x + car.length * dir, car.y + 2.5, 2.5, 0, Math.PI * 2);
+      ctx.fill();
 
       ctx.shadowBlur = 0;
 
@@ -200,7 +208,7 @@ function initCity() {
   function drawStreet() {
 
     // Faint street strip at the very base, under the car lanes.
-    ctx.fillStyle = "rgba(10, 8, 30, 0.9)";
+    ctx.fillStyle = "rgba(20, 20, 20, 0.95)";
     ctx.fillRect(0, groundY, width, height - groundY);
 
   }
