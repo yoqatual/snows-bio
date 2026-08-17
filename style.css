@@ -20,7 +20,7 @@
 
 html, body {
   height: 100%;
-  background: var(--bg);
+  background: linear-gradient(180deg, #0a0d2e 0%, #1a1245 40%, #2b1854 70%, #120a2e 100%);
   color: var(--text);
   font-family: 'Space Mono', monospace;
   font-size: 14px;
@@ -28,6 +28,13 @@ html, body {
 }
 
 canvas#stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+canvas#city {
   position: fixed;
   inset: 0;
   z-index: 0;
