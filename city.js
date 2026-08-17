@@ -103,70 +103,61 @@ function initCity() {
 
   function drawCNTower(x) {
 
-    const towerHeight = height * 0.62;
+    const H = height * 0.62; // total tower height
     const baseY = groundY;
-    const topY = baseY - towerHeight;
 
-    const shaftWidth = 10;
-    const podY = baseY - towerHeight * 0.62;   // main pod center height
-    const podWidth = 46;
-    const podHeight = 26;
-    const skyPodY = baseY - towerHeight * 0.78; // smaller upper pod
-    const skyPodWidth = 22;
-    const skyPodHeight = 12;
-    const antennaTopY = topY - height * 0.06;
+    // Key heights, working up from the ground
+    const yPodBottom = baseY - H * 0.55;
+    const yPodTop    = baseY - H * 0.68;
+    const yNeck      = baseY - H * 0.74;
+    const yMastTop   = baseY - H * 0.97;
+    const yTip       = baseY - H;
 
-    // Lighter gray so it actually stands out against the black sky,
-    // with a faint outline for definition.
+    // Half-widths at each of those heights — thin shaft, one
+    // bulge for the pod, then a thin needle mast up to a point.
+    const hwBase    = 7;
+    const hwLower   = 3;
+    const hwPod     = 13;
+    const hwPostPod = 2.5;
+    const hwMast    = 1.2;
+
     ctx.fillStyle = "#5a5a5a";
     ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
     ctx.lineWidth = 1;
 
-    // Shaft
     ctx.beginPath();
-    ctx.moveTo(x - shaftWidth, baseY);
-    ctx.lineTo(x - shaftWidth * 0.4, topY);
-    ctx.lineTo(x + shaftWidth * 0.4, topY);
-    ctx.lineTo(x + shaftWidth, baseY);
+    ctx.moveTo(x - hwBase, baseY);
+    ctx.lineTo(x - hwLower, yPodBottom);
+    ctx.lineTo(x - hwPod, yPodBottom);
+    ctx.lineTo(x - hwPod, yPodTop);
+    ctx.lineTo(x - hwPostPod, yNeck);
+    ctx.lineTo(x - hwMast, yMastTop);
+    ctx.lineTo(x, yTip);
+    ctx.lineTo(x + hwMast, yMastTop);
+    ctx.lineTo(x + hwPostPod, yNeck);
+    ctx.lineTo(x + hwPod, yPodTop);
+    ctx.lineTo(x + hwPod, yPodBottom);
+    ctx.lineTo(x + hwLower, yPodBottom);
+    ctx.lineTo(x + hwBase, baseY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Main pod (observation deck)
-    ctx.beginPath();
-    ctx.ellipse(x, podY, podWidth / 2, podHeight / 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+    // A thin dark band across the pod, like the observation deck line
+    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.fillRect(x - hwPod, yPodBottom - (yPodBottom - yPodTop) * 0.4, hwPod * 2, 3);
 
-    // SkyPod (smaller upper bulge)
-    ctx.beginPath();
-    ctx.ellipse(x, skyPodY, skyPodWidth / 2, skyPodHeight / 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Antenna mast
-    ctx.strokeStyle = "#8a8a8a";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x, topY);
-    ctx.lineTo(x, antennaTopY);
-    ctx.stroke();
-
-    // Pulsing white beacon at the very tip, breathing brighter/dimmer
+    // Pulsing white beacon right at the tip
     const pulse = (Math.sin(Date.now() / 400) + 1) / 2; // 0..1
-    const radius = 2 + pulse * 2.5;
+    const radius = 1.5 + pulse * 2;
 
-    ctx.fillStyle = `rgba(255, 255, 255, ${0.4 + pulse * 0.6})`;
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + pulse * 0.5})`;
     ctx.shadowColor = "#ffffff";
     ctx.shadowBlur = 8 + pulse * 14;
     ctx.beginPath();
-    ctx.arc(x, antennaTopY, radius, 0, Math.PI * 2);
+    ctx.arc(x, yTip, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
-
-    // Small secondary light on the main pod
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.fillRect(x - 1, podY - podHeight / 2 - 2, 2, 2);
 
   }
 
