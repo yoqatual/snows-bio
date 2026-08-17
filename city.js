@@ -107,33 +107,51 @@ function initCity() {
     const baseY = groundY;
 
     // Width of the tower at normalized height t (0 = base, 1 = tip).
-    // A smooth taper down to a thin mast, with a gentle rounded
-    // bulge (sine-shaped, no hard corners) for the pod.
+    // A smooth taper down to a thin mast, with two rounded bulges
+    // (sine-shaped, no hard corners) for the SkyPod and the smaller
+    // upper deck above it.
     function halfWidthAt(t) {
 
-      const wBase = 5;
-      const wNeck1 = 2.4;
-      const wNeck2 = 1.2;
-      const podBump = 8;
+      // Baseline taper, defined as width checkpoints from base (t=0) to tip (t=1)
+      const points = [
+        { t: 0,    w: 7 },
+        { t: 0.58, w: 2.2 },
+        { t: 0.66, w: 1.8 },
+        { t: 0.74, w: 1.0 },
+        { t: 0.80, w: 0.8 },
+        { t: 1,    w: 0.05 }
+      ];
 
-      if (t < 0.55) {
-        const local = t / 0.55;
-        return wBase + (wNeck1 - wBase) * local;
+      let base = points[0].w;
+      for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i], b = points[i + 1];
+        if (t >= a.t && t <= b.t) {
+          const local = (t - a.t) / (b.t - a.t);
+          base = a.w + (b.w - a.w) * local;
+          break;
+        }
       }
 
-      if (t < 0.78) {
-        const local = (t - 0.55) / (0.78 - 0.55);
-        const baseline = wNeck1 + (wNeck2 - wNeck1) * local;
-        const bump = Math.sin(local * Math.PI) * podBump;
-        return baseline + bump;
+      // Two bulges: the main SkyPod, and the smaller upper deck above it
+      const bumps = [
+        { start: 0.58, end: 0.66, amp: 3.0 },
+        { start: 0.74, end: 0.80, amp: 1.0 }
+      ];
+
+      let bump = 0;
+      for (const b of bumps) {
+        if (t >= b.start && t <= b.end) {
+          const local = (t - b.start) / (b.end - b.start);
+          bump = Math.sin(local * Math.PI) * b.amp;
+          break;
+        }
       }
 
-      const local = (t - 0.78) / (1 - 0.78);
-      return wNeck2 * (1 - local);
+      return base + bump;
 
     }
 
-    const STEPS = 36;
+    const STEPS = 60;
     const leftPts = [];
     const rightPts = [];
 
@@ -161,8 +179,8 @@ function initCity() {
     ctx.fill();
     ctx.stroke();
 
-    // Thin dark band across the middle of the pod bulge
-    const podPeakT = 0.665;
+    // Thin dark band across the middle of the main pod bulge
+    const podPeakT = 0.62;
     const podPeakY = baseY - H * podPeakT;
     const podPeakHw = halfWidthAt(podPeakT);
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
