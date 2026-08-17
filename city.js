@@ -15,19 +15,21 @@ function initCity() {
   let width, height, groundY;
   let buildingLayers = [];
   let cars = [];
+  let towerX = 0;
 
-  // Cool blue/purple palette, back layer darker + more purple,
-  // front layer lighter + more blue, so there's a sense of depth.
+  // Black & white palette: distant buildings read lighter/hazier,
+  // closest buildings go near-pure black for a strong silhouette.
   const LAYER_COLORS = [
-    { fill: "#241a4a", window: "rgba(190, 200, 255, 0.55)" },
-    { fill: "#2f2360", window: "rgba(200, 210, 255, 0.7)" },
-    { fill: "#3b2c78", window: "rgba(220, 225, 255, 0.9)" }
+    { fill: "#3a3a3a", window: "rgba(255, 255, 255, 0.35)" },
+    { fill: "#1f1f1f", window: "rgba(255, 255, 255, 0.55)" },
+    { fill: "#050505", window: "rgba(255, 255, 255, 0.85)" }
   ];
 
   function resize() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
     groundY = height * 0.86;
+    towerX = width * 0.68;
     buildingLayers = LAYER_COLORS.map((color, i) =>
       generateLayer(color, i)
     );
@@ -99,6 +101,57 @@ function initCity() {
 
   }
 
+  function drawCNTower(x) {
+
+    const towerHeight = height * 0.62;
+    const baseY = groundY;
+    const topY = baseY - towerHeight;
+
+    const shaftWidth = 10;
+    const podY = baseY - towerHeight * 0.62;   // main pod center height
+    const podWidth = 46;
+    const podHeight = 26;
+    const skyPodY = baseY - towerHeight * 0.78; // smaller upper pod
+    const skyPodWidth = 22;
+    const skyPodHeight = 12;
+    const antennaTopY = topY - height * 0.06;
+
+    ctx.fillStyle = "#0a0a0a";
+
+    // Shaft
+    ctx.beginPath();
+    ctx.moveTo(x - shaftWidth, baseY);
+    ctx.lineTo(x - shaftWidth * 0.4, topY);
+    ctx.lineTo(x + shaftWidth * 0.4, topY);
+    ctx.lineTo(x + shaftWidth, baseY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Main pod (observation deck)
+    ctx.beginPath();
+    ctx.ellipse(x, podY, podWidth / 2, podHeight / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // SkyPod (smaller upper bulge)
+    ctx.beginPath();
+    ctx.ellipse(x, skyPodY, skyPodWidth / 2, skyPodHeight / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Antenna mast
+    ctx.strokeStyle = "#0a0a0a";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, topY);
+    ctx.lineTo(x, antennaTopY);
+    ctx.stroke();
+
+    // A couple of tiny aircraft-warning lights on the mast/pod
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.fillRect(x - 1, antennaTopY, 2, 2);
+    ctx.fillRect(x - 1, podY - podHeight / 2 - 2, 2, 2);
+
+  }
+
   function initCars() {
 
     cars = [];
@@ -114,7 +167,7 @@ function initCity() {
         x: Math.random() * width,
         y: laneY + (direction > 0 ? 10 : 0),
         speed: (0.6 + Math.random() * 1.2) * direction,
-        color: Math.random() < 0.5 ? "#ff6b6b" : "#ffd166",
+        color: Math.random() < 0.5 ? "#ffffff" : "#999999",
         length: 14 + Math.random() * 6
       });
 
@@ -156,7 +209,14 @@ function initCity() {
 
     ctx.clearRect(0, 0, width, height);
 
-    buildingLayers.forEach(drawLayer);
+    // Draw the back-most building layer, then the tower (so it
+    // reads as sitting just behind the closer rows), then the
+    // remaining layers in front of it.
+    drawLayer(buildingLayers[0]);
+    drawCNTower(towerX);
+    for (let i = 1; i < buildingLayers.length; i++) {
+      drawLayer(buildingLayers[i]);
+    }
 
     drawStreet();
     drawCars();
