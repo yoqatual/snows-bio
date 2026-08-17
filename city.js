@@ -116,7 +116,11 @@ function initCity() {
     const skyPodHeight = 12;
     const antennaTopY = topY - height * 0.06;
 
-    ctx.fillStyle = "#0a0a0a";
+    // Lighter gray so it actually stands out against the black sky,
+    // with a faint outline for definition.
+    ctx.fillStyle = "#5a5a5a";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1;
 
     // Shaft
     ctx.beginPath();
@@ -126,28 +130,42 @@ function initCity() {
     ctx.lineTo(x + shaftWidth, baseY);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
 
     // Main pod (observation deck)
     ctx.beginPath();
     ctx.ellipse(x, podY, podWidth / 2, podHeight / 2, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
 
     // SkyPod (smaller upper bulge)
     ctx.beginPath();
     ctx.ellipse(x, skyPodY, skyPodWidth / 2, skyPodHeight / 2, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
 
     // Antenna mast
-    ctx.strokeStyle = "#0a0a0a";
+    ctx.strokeStyle = "#8a8a8a";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(x, topY);
     ctx.lineTo(x, antennaTopY);
     ctx.stroke();
 
-    // A couple of tiny aircraft-warning lights on the mast/pod
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.fillRect(x - 1, antennaTopY, 2, 2);
+    // Pulsing white beacon at the very tip, breathing brighter/dimmer
+    const pulse = (Math.sin(Date.now() / 400) + 1) / 2; // 0..1
+    const radius = 2 + pulse * 2.5;
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.4 + pulse * 0.6})`;
+    ctx.shadowColor = "#ffffff";
+    ctx.shadowBlur = 8 + pulse * 14;
+    ctx.beginPath();
+    ctx.arc(x, antennaTopY, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Small secondary light on the main pod
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
     ctx.fillRect(x - 1, podY - podHeight / 2 - 2, 2, 2);
 
   }
