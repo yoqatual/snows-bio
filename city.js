@@ -1,295 +1,454 @@
 // =========================
-// CITY SKYLINE BACKGROUND
+// CITY SKYLINE BACKGROUND (3D / Three.js)
 // =========================
-// Procedurally generated building silhouettes with lit windows,
-// sitting along the bottom of the screen, plus little cars that
-// drive back and forth along the street at the base.
+// Same idea as the old 2D canvas version — layered building
+// silhouettes, a CN Tower, cars driving along the street — but
+// now built as an actual 3D scene so buildings have real depth
+// and the cars are real low-poly meshes instead of glowing bars.
+//
+// Requires Three.js to be loaded before this file, e.g. in your
+// HTML <head> or before the city.js <script> tag:
+//
+//   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+//
+// Uses the existing <canvas id="city"></canvas> element as the
+// WebGL render target, so no HTML changes beyond the script tag
+// above are needed.
 
 function initCity() {
 
-  const canvas = document.getElementById("city");
-  if (!canvas) return;
+  const canvasEl = document.getElementById("city");
+  if (!canvasEl) return;
+  if (typeof THREE === "undefined") {
+    console.error("Three.js not loaded — add the three.js <script> tag before city.js");
+    return;
+  }
 
-  const ctx = canvas.getContext("2d");
+  // -------------------------
+  // Core scene / camera / renderer
+  // -------------------------
 
-  let width, height, groundY;
-  let buildingLayers = [];
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(
+    45,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+  );
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvasEl,
+    antialias: true,
+    alpha: true
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  // -------------------------
+  // Lighting
+  // Mostly a night scene, so lights are dim — buildings read from
+  // window textures / silhouette, not from illumination.
+  // -------------------------
+
+  scene.add(new THREE.AmbientLight(0x8899aa, 0.55));
+
+  const moon = new THREE.DirectionalLight(0xaabbff, 0.6);
+  moon.position.set(-40, 60, 40);
+  scene.add(moon);
+
+  // -------------------------
+  // Layout constants (world units)
+  // -------------------------
+
+  const GROUND_Y = 0;
+  const LAYER_Z = [-60, -30, 0];       // back, mid, front layers
+  const LAYER_COLOR = [0x3a3a3a, 0x232323, 0x0a0a0a];
+  const LAYER_WINDOW = ["rgba(255,255,255,0.35)", "rgba(255,255,255,0.55)", "rgba(255,255,255,0.85)"];
+  const LAYER_HEIGHT_SCALE = [22, 30, 40]; // max building height per layer
+
+  let width, height;
+  let buildingGroups = [];
   let cars = [];
-  let towerX = 0;
+  let tower;
+  let beaconLight, beaconMesh;
+  let stars;
+  let mouseX = 0, mouseY = 0;
+  let streetWidthWorld = 200;
 
-  // Black & white palette: distant buildings read lighter/hazier,
-  // closest buildings go near-pure black for a strong silhouette.
-  const LAYER_COLORS = [
-    { fill: "#3a3a3a", window: "rgba(255, 255, 255, 0.35)" },
-    { fill: "#1f1f1f", window: "rgba(255, 255, 255, 0.55)" },
-    { fill: "#050505", window: "rgba(255, 255, 255, 0.85)" }
-  ];
+  // -------------------------
+  // Window texture helper
+  // Draws a small grid of lit windows onto a canvas and returns
+  // it as a Three.js texture, used on the front face of buildings.
+  // -------------------------
 
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    groundY = height * 0.86;
-    towerX = width * 0.15;
-    buildingLayers = LAYER_COLORS.map((color, i) =>
-      generateLayer(color, i)
-    );
-  }
+  function makeWindowTexture(wPx, hPx, windowColor) {
 
-  function generateLayer(color, layerIndex) {
+    const cnv = document.createElement("canvas");
+    cnv.width = 64;
+    cnv.height = Math.max(32, Math.round(64 * (hPx / wPx)));
 
-    // Layers further back (lower index) are shorter and start
-    // higher up the screen, so they peek out behind the front row.
-    const depthFactor = (layerIndex + 1) / LAYER_COLORS.length;
-    const maxHeight = height * 0.32 * depthFactor + height * 0.12;
-    const minHeight = maxHeight * 0.35;
+    const c = cnv.getContext("2d");
+    c.clearRect(0, 0, cnv.width, cnv.height);
 
-    const buildings = [];
-    let x = -20;
+    const cols = Math.max(2, Math.floor(cnv.width / 8));
+    const rows = Math.max(2, Math.floor(cnv.height / 8));
+    const padX = cnv.width / cols;
+    const padY = cnv.height / rows;
 
-    while (x < width + 20) {
+    c.fillStyle = windowColor;
 
-      const w = 40 + Math.random() * 60;
-      const h = minHeight + Math.random() * (maxHeight - minHeight);
-
-      const windowRows = Math.max(2, Math.floor(h / 18));
-      const windowCols = Math.max(2, Math.floor(w / 16));
-
-      const windows = [];
-      for (let r = 0; r < windowRows; r++) {
-        for (let c = 0; c < windowCols; c++) {
-          if (Math.random() < 0.55) {
-            windows.push({ r, c });
-          }
+    for (let r = 0; r < rows; r++) {
+      for (let col = 0; col < cols; col++) {
+        if (Math.random() < 0.55) {
+          c.fillRect(
+            col * padX + padX * 0.25,
+            r * padY + padY * 0.25,
+            padX * 0.5,
+            padY * 0.5
+          );
         }
       }
+    }
 
-      buildings.push({ x, w, h, windowRows, windowCols, windows });
+    const tex = new THREE.CanvasTexture(cnv);
+    tex.magFilter = THREE.NearestFilter;
+    tex.minFilter = THREE.NearestFilter;
+    return tex;
 
-      x += w + 4 + Math.random() * 10;
+  }
+
+  // -------------------------
+  // Buildings
+  // -------------------------
+
+  function buildLayer(layerIndex) {
+
+    const group = new THREE.Group();
+    const z = LAYER_Z[layerIndex];
+    const baseColor = LAYER_COLOR[layerIndex];
+    const windowColor = LAYER_WINDOW[layerIndex];
+    const maxH = LAYER_HEIGHT_SCALE[layerIndex];
+
+    const sideMat = new THREE.MeshLambertMaterial({ color: baseColor });
+
+    let x = -streetWidthWorld / 2 - 10;
+
+    while (x < streetWidthWorld / 2 + 10) {
+
+      const w = 3 + Math.random() * 4;
+      const d = 3 + Math.random() * 3;
+      const h = maxH * (0.35 + Math.random() * 0.65);
+
+      const winTex = makeWindowTexture(w, h, windowColor);
+      const frontMat = new THREE.MeshBasicMaterial({ map: winTex });
+
+      // Box face material order: [+x, -x, +y, -y, +z, -z]
+      // Camera looks toward -z, so the +z face is what's visible.
+      const materials = [
+        sideMat, sideMat,
+        sideMat, sideMat,
+        frontMat, sideMat
+      ];
+
+      const geo = new THREE.BoxGeometry(w, h, d);
+      const mesh = new THREE.Mesh(geo, materials);
+
+      mesh.position.set(x + w / 2, GROUND_Y + h / 2, z);
+      group.add(mesh);
+
+      x += w + 0.6 + Math.random() * 1.2;
 
     }
 
-    return { color, buildings };
+    return group;
 
   }
 
-  function drawLayer(layer) {
+  function rebuildBuildings() {
 
-    ctx.fillStyle = layer.color.fill;
-
-    layer.buildings.forEach(b => {
-      ctx.fillRect(b.x, groundY - b.h, b.w, b.h);
-    });
-
-    ctx.fillStyle = layer.color.window;
-
-    const winW = 4;
-    const winH = 6;
-
-    layer.buildings.forEach(b => {
-
-      const padX = b.w / b.windowCols;
-      const padY = b.h / b.windowRows;
-
-      b.windows.forEach(win => {
-        const wx = b.x + win.c * padX + padX / 2 - winW / 2;
-        const wy = groundY - b.h + win.r * padY + padY / 2 - winH / 2;
-        ctx.fillRect(wx, wy, winW, winH);
-      });
-
-    });
+    buildingGroups.forEach(g => scene.remove(g));
+    buildingGroups = LAYER_Z.map((_, i) => buildLayer(i));
+    buildingGroups.forEach(g => scene.add(g));
 
   }
 
-  function drawCNTower(x) {
+  // -------------------------
+  // CN Tower — built with a LatheGeometry, revolving the same
+  // taper + bulge profile from the old 2D version around the
+  // vertical axis. This is what actually gives it a real 3D
+  // "tower of revolution" shape instead of a flat cutout.
+  // -------------------------
 
-    const H = height * 0.62; // total tower height
-    const baseY = groundY;
+  function towerRadiusAt(t) {
 
-    // Width of the tower at normalized height t (0 = base, 1 = tip).
-    // A smooth taper down to a thin mast, with two rounded bulges
-    // (sine-shaped, no hard corners) for the SkyPod and the smaller
-    // upper deck above it.
-    function halfWidthAt(t) {
+    const points = [
+      { t: 0,    r: 1.6 },
+      { t: 0.58, r: 0.5 },
+      { t: 0.66, r: 0.4 },
+      { t: 0.74, r: 0.22 },
+      { t: 0.80, r: 0.18 },
+      { t: 1,    r: 0.02 }
+    ];
 
-      // Baseline taper, defined as width checkpoints from base (t=0) to tip (t=1)
-      const points = [
-        { t: 0,    w: 7 },
-        { t: 0.58, w: 2.2 },
-        { t: 0.66, w: 1.8 },
-        { t: 0.74, w: 1.0 },
-        { t: 0.80, w: 0.8 },
-        { t: 1,    w: 0.05 }
-      ];
-
-      let base = points[0].w;
-      for (let i = 0; i < points.length - 1; i++) {
-        const a = points[i], b = points[i + 1];
-        if (t >= a.t && t <= b.t) {
-          const local = (t - a.t) / (b.t - a.t);
-          base = a.w + (b.w - a.w) * local;
-          break;
-        }
+    let base = points[0].r;
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i], b = points[i + 1];
+      if (t >= a.t && t <= b.t) {
+        const local = (t - a.t) / (b.t - a.t);
+        base = a.r + (b.r - a.r) * local;
+        break;
       }
-
-      // Two bulges: the main SkyPod, and the smaller upper deck above it
-      const bumps = [
-        { start: 0.58, end: 0.66, amp: 3.0 },
-        { start: 0.74, end: 0.80, amp: 1.0 }
-      ];
-
-      let bump = 0;
-      for (const b of bumps) {
-        if (t >= b.start && t <= b.end) {
-          const local = (t - b.start) / (b.end - b.start);
-          bump = Math.sin(local * Math.PI) * b.amp;
-          break;
-        }
-      }
-
-      return base + bump;
-
     }
 
-    const STEPS = 60;
-    const leftPts = [];
-    const rightPts = [];
+    const bumps = [
+      { start: 0.58, end: 0.66, amp: 0.65 },
+      { start: 0.74, end: 0.80, amp: 0.22 }
+    ];
+
+    let bump = 0;
+    for (const bmp of bumps) {
+      if (t >= bmp.start && t <= bmp.end) {
+        const local = (t - bmp.start) / (bmp.end - bmp.start);
+        bump = Math.sin(local * Math.PI) * bmp.amp;
+        break;
+      }
+    }
+
+    return base + bump;
+
+  }
+
+  function buildTower() {
+
+    const H = 60;
+    const STEPS = 48;
+    const profile = [];
 
     for (let i = 0; i <= STEPS; i++) {
       const t = i / STEPS;
-      const y = baseY - H * t;
-      const hw = halfWidthAt(t);
-      leftPts.push([x - hw, y]);
-      rightPts.push([x + hw, y]);
+      const r = Math.max(0.01, towerRadiusAt(t));
+      profile.push(new THREE.Vector2(r, t * H));
     }
 
-    ctx.fillStyle = "#5a5a5a";
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-    ctx.lineWidth = 1;
+    const geo = new THREE.LatheGeometry(profile, 24);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x5a5a5a,
+      metalness: 0.2,
+      roughness: 0.7
+    });
 
-    ctx.beginPath();
-    ctx.moveTo(leftPts[0][0], leftPts[0][1]);
-    for (let i = 1; i < leftPts.length; i++) {
-      ctx.lineTo(leftPts[i][0], leftPts[i][1]);
-    }
-    for (let i = rightPts.length - 1; i >= 0; i--) {
-      ctx.lineTo(rightPts[i][0], rightPts[i][1]);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(-streetWidthWorld * 0.28, GROUND_Y, -20);
 
-    // Thin dark band across the middle of the main pod bulge
-    const podPeakT = 0.62;
-    const podPeakY = baseY - H * podPeakT;
-    const podPeakHw = halfWidthAt(podPeakT);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-    ctx.fillRect(x - podPeakHw, podPeakY - 1, podPeakHw * 2, 3);
+    // Pulsing beacon at the tip
+    const beaconGeo = new THREE.SphereGeometry(0.4, 12, 12);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    beaconMesh = new THREE.Mesh(beaconGeo, beaconMat);
+    beaconMesh.position.set(mesh.position.x, H, mesh.position.z);
 
-    // Pulsing white beacon right at the tip
-    const tipY = baseY - H;
-    const pulse = (Math.sin(Date.now() / 400) + 1) / 2; // 0..1
-    const radius = 1.5 + pulse * 2;
+    beaconLight = new THREE.PointLight(0xffffff, 1, 20);
+    beaconLight.position.copy(beaconMesh.position);
 
-    ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + pulse * 0.5})`;
-    ctx.shadowColor = "#ffffff";
-    ctx.shadowBlur = 8 + pulse * 14;
-    ctx.beginPath();
-    ctx.arc(x, tipY, radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    scene.add(mesh);
+    scene.add(beaconMesh);
+    scene.add(beaconLight);
+
+    return mesh;
 
   }
 
-  function initCars() {
+  // -------------------------
+  // Cars — real low-poly 3D meshes: body, cabin, four wheels,
+  // and a headlight/taillight glow depending on direction.
+  // -------------------------
 
+  function makeCar(color) {
+
+    const group = new THREE.Group();
+
+    const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.3 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.55, 1), bodyMat);
+    body.position.y = 0.45;
+    group.add(body);
+
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.4, 0.85), bodyMat);
+    cabin.position.set(-0.15, 0.85, 0);
+    group.add(cabin);
+
+    const wheelGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.18, 12);
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+
+    const wheelPositions = [
+      [0.75, 0.22, 0.55], [0.75, 0.22, -0.55],
+      [-0.75, 0.22, 0.55], [-0.75, 0.22, -0.55]
+    ];
+
+    wheelPositions.forEach(p => {
+      const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+      wheel.rotation.x = Math.PI / 2;
+      wheel.position.set(p[0], p[1], p[2]);
+      group.add(wheel);
+    });
+
+    // Headlight (front, glowing) and taillight (rear, dim red)
+    const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), headMat);
+    head.position.set(1.15, 0.45, 0);
+    group.add(head);
+
+    const tailMat = new THREE.MeshBasicMaterial({ color: 0xff3333 });
+    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), tailMat);
+    tail.position.set(-1.15, 0.45, 0);
+    group.add(tail);
+
+    return group;
+
+  }
+
+  function rebuildCars() {
+
+    cars.forEach(c => scene.remove(c.mesh));
     cars = [];
 
-    const laneY = groundY + 8;
-    const carCount = Math.max(5, Math.floor(width / 180));
+    const laneZ = 4;
+    const carCount = Math.max(4, Math.floor(streetWidthWorld / 22));
 
     for (let i = 0; i < carCount; i++) {
 
       const direction = Math.random() < 0.5 ? 1 : -1;
+      const colors = [0xffffff, 0xdddddd, 0xcfd8ff];
+      const mesh = makeCar(colors[Math.floor(Math.random() * colors.length)]);
+
+      mesh.rotation.y = direction > 0 ? 0 : Math.PI;
+      mesh.position.set(
+        (Math.random() - 0.5) * streetWidthWorld,
+        GROUND_Y,
+        laneZ * direction
+      );
+
+      scene.add(mesh);
 
       cars.push({
-        x: Math.random() * width,
-        y: laneY + (direction > 0 ? 14 : 0),
-        speed: (0.8 + Math.random() * 1.6) * direction,
-        color: Math.random() < 0.5 ? "#ffffff" : "#dddddd",
-        length: 20 + Math.random() * 10
+        mesh,
+        speed: (0.06 + Math.random() * 0.08) * direction
       });
 
     }
 
   }
 
-  function drawCars() {
+  // -------------------------
+  // Street
+  // -------------------------
 
-    cars.forEach(car => {
+  function buildStreet() {
 
-      car.x += car.speed;
-
-      if (car.speed > 0 && car.x > width + 30) car.x = -30;
-      if (car.speed < 0 && car.x < -30) car.x = width + 30;
-
-      const dir = car.speed > 0 ? 1 : -1;
-
-      // Body
-      ctx.fillStyle = car.color;
-      ctx.shadowColor = car.color;
-      ctx.shadowBlur = 14;
-      ctx.fillRect(car.x, car.y, car.length * dir, 5);
-
-      // Bright headlight dot at the leading edge
-      ctx.fillStyle = "#ffffff";
-      ctx.shadowBlur = 20;
-      ctx.beginPath();
-      ctx.arc(car.x + car.length * dir, car.y + 2.5, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.shadowBlur = 0;
-
-    });
+    const geo = new THREE.PlaneGeometry(streetWidthWorld + 60, 16);
+    const mat = new THREE.MeshLambertMaterial({ color: 0x141414 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(0, GROUND_Y - 0.01, 8);
+    scene.add(mesh);
 
   }
 
-  function drawStreet() {
+  // -------------------------
+  // Stars
+  // -------------------------
 
-    // Faint street strip at the very base, under the car lanes.
-    ctx.fillStyle = "rgba(20, 20, 20, 0.95)";
-    ctx.fillRect(0, groundY, width, height - groundY);
+  function buildStars() {
+
+    if (stars) scene.remove(stars);
+
+    const count = 400;
+    const positions = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 400;
+      positions[i * 3 + 1] = Math.random() * 120 + 20;
+      positions[i * 3 + 2] = -100 - Math.random() * 150;
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+    const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, sizeAttenuation: true });
+    stars = new THREE.Points(geo, mat);
+    scene.add(stars);
 
   }
+
+  // -------------------------
+  // Resize / layout
+  // -------------------------
+
+  function resize() {
+
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+
+    // Keep the street roughly filling the viewport width regardless
+    // of aspect ratio, similar to how the 2D version scaled to window.
+    streetWidthWorld = Math.max(120, (width / height) * 110);
+
+    camera.position.set(0, 26, 95);
+    camera.lookAt(0, 14, 0);
+
+    rebuildBuildings();
+    rebuildCars();
+
+  }
+
+  // -------------------------
+  // Animate
+  // -------------------------
 
   function animate() {
 
-    ctx.clearRect(0, 0, width, height);
-
-    // Draw the back-most building layer, then the tower (so it
-    // reads as sitting just behind the closer rows), then the
-    // remaining layers in front of it.
-    drawLayer(buildingLayers[0]);
-    drawCNTower(towerX);
-    for (let i = 1; i < buildingLayers.length; i++) {
-      drawLayer(buildingLayers[i]);
-    }
-
-    drawStreet();
-    drawCars();
-
     requestAnimationFrame(animate);
+
+    // Cars drive back and forth, wrapping at the street edges
+    cars.forEach(car => {
+      car.mesh.position.x += car.speed;
+      const limit = streetWidthWorld / 2 + 4;
+      if (car.speed > 0 && car.mesh.position.x > limit) car.mesh.position.x = -limit;
+      if (car.speed < 0 && car.mesh.position.x < -limit) car.mesh.position.x = limit;
+    });
+
+    // Pulsing beacon
+    const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
+    if (beaconLight) beaconLight.intensity = 0.6 + pulse * 1.4;
+    if (beaconMesh) beaconMesh.scale.setScalar(1 + pulse * 0.4);
+
+    // Gentle drift on the stars for a bit of life
+    if (stars) stars.rotation.y += 0.00006;
+
+    // Subtle mouse parallax so the depth actually reads as 3D
+    const targetX = mouseX * 6;
+    const targetY = 26 + mouseY * 3;
+    camera.position.x += (targetX - camera.position.x) * 0.02;
+    camera.position.y += (targetY - camera.position.y) * 0.02;
+    camera.lookAt(0, 14, 0);
+
+    renderer.render(scene, camera);
 
   }
 
-  resize();
-  initCars();
-
-  window.addEventListener("resize", () => {
-    resize();
-    initCars();
+  window.addEventListener("mousemove", (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
   });
 
+  window.addEventListener("resize", resize);
+
+  buildStreet();
+  buildStars();
+  tower = buildTower();
+  resize();
   animate();
 
 }
