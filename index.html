@@ -12,15 +12,18 @@
 <body>
   <canvas id="stars"></canvas>
   <canvas id="city"></canvas>
+
   <div id="loading">
     <div id="loadingContent">
       <div id="loadingHeader">booting snows.rest...</div>
       <div id="loadingList"></div>
     </div>
   </div>
+
   <div id="intro" style="display:none;">
     <span>click to enter</span>
   </div>
+
   <main id="app">
     <div class="card">
       <nav class="nav">
@@ -35,29 +38,36 @@
       <section class="content" id="content"></section>
     </div>
   </main>
+
   <div class="music-widget">
     <img class="music-art" src="cat.png" alt="Album Art">
+
     <div class="music-title" id="songTitle"></div>
+
     <div class="music-buttons">
       <button id="prevBtn">⏮</button>
       <button id="playPause">▶</button>
       <button id="nextBtn">⏭</button>
     </div>
+
     <div class="progress-container">
       <input type="range" id="progress" min="0" max="100" value="0">
     </div>
+
     <div class="music-time">
       <span id="currentTime">0:00</span>
       <span>/</span>
       <span id="duration">0:00</span>
     </div>
+
     <div class="volume-container">
       <span>🔊</span>
       <input type="range" id="volume" min="0" max="100" value="40">
     </div>
   </div>
+
   <audio id="bgMusic" preload="auto"></audio>
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
   <script src="oneko.js"></script>
   <script src="city.js"></script>
   <script src="script.js"></script>
