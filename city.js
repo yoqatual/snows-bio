@@ -63,7 +63,11 @@ function initCity() {
   const GROUND_Y = 0;
   const LAYER_Z = [-60, -30, 0];       // back, mid, front layers
   const LAYER_COLOR = [0x3a3a3a, 0x232323, 0x0a0a0a];
-  const LAYER_WINDOW = ["rgba(255,255,255,0.35)", "rgba(255,255,255,0.55)", "rgba(255,255,255,0.85)"];
+  // Solid colors (not alpha) — baking brightness into RGB instead of
+  // alpha, since a plain (non-transparent) MeshBasicMaterial ignores
+  // texture alpha and would otherwise render every window at full
+  // brightness regardless of layer, killing the depth cue.
+  const LAYER_WINDOW = ["#8a8a8a", "#c7c7c7", "#ffffff"];
   const LAYER_HEIGHT_SCALE = [22, 30, 40]; // max building height per layer
 
   let width, height;
@@ -232,13 +236,17 @@ function initCity() {
 
     const geo = new THREE.LatheGeometry(profile, 24);
     const mat = new THREE.MeshStandardMaterial({
-      color: 0x5a5a5a,
+      color: 0x8a8a8a,
+      emissive: 0x1a1a1a,
       metalness: 0.2,
-      roughness: 0.7
+      roughness: 0.6
     });
 
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(-streetWidthWorld * 0.28, GROUND_Y, -20);
+    // Positioned ahead of the front building layer (z=0) so it isn't
+    // occluded by the skyline — in 3D, depth actually blocks visibility,
+    // unlike the old 2D version where paint order alone decided that.
+    mesh.position.set(-streetWidthWorld * 0.3, GROUND_Y, 12);
 
     // Pulsing beacon at the tip
     const beaconGeo = new THREE.SphereGeometry(0.4, 12, 12);
@@ -266,21 +274,21 @@ function initCity() {
 
     const group = new THREE.Group();
 
-    const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.3 });
-    const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.55, 1), bodyMat);
-    body.position.y = 0.45;
+    const bodyMat = new THREE.MeshStandardMaterial({ color, emissive: 0x222222, roughness: 0.35, metalness: 0.3 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.85, 1.5), bodyMat);
+    body.position.y = 0.68;
     group.add(body);
 
-    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.4, 0.85), bodyMat);
-    cabin.position.set(-0.15, 0.85, 0);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.6, 1.3), bodyMat);
+    cabin.position.set(-0.2, 1.28, 0);
     group.add(cabin);
 
-    const wheelGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.18, 12);
+    const wheelGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.27, 12);
     const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
 
     const wheelPositions = [
-      [0.75, 0.22, 0.55], [0.75, 0.22, -0.55],
-      [-0.75, 0.22, 0.55], [-0.75, 0.22, -0.55]
+      [1.1, 0.33, 0.82], [1.1, 0.33, -0.82],
+      [-1.1, 0.33, 0.82], [-1.1, 0.33, -0.82]
     ];
 
     wheelPositions.forEach(p => {
@@ -292,13 +300,13 @@ function initCity() {
 
     // Headlight (front, glowing) and taillight (rear, dim red)
     const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), headMat);
-    head.position.set(1.15, 0.45, 0);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), headMat);
+    head.position.set(1.7, 0.68, 0);
     group.add(head);
 
     const tailMat = new THREE.MeshBasicMaterial({ color: 0xff3333 });
-    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), tailMat);
-    tail.position.set(-1.15, 0.45, 0);
+    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), tailMat);
+    tail.position.set(-1.7, 0.68, 0);
     group.add(tail);
 
     return group;
@@ -343,8 +351,8 @@ function initCity() {
 
   function buildStreet() {
 
-    const geo = new THREE.PlaneGeometry(streetWidthWorld + 60, 16);
-    const mat = new THREE.MeshLambertMaterial({ color: 0x141414 });
+    const geo = new THREE.PlaneGeometry(streetWidthWorld + 60, 40);
+    const mat = new THREE.MeshLambertMaterial({ color: 0x1c1c1c });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.set(0, GROUND_Y - 0.01, 8);
@@ -395,8 +403,8 @@ function initCity() {
     // of aspect ratio, similar to how the 2D version scaled to window.
     streetWidthWorld = Math.max(120, (width / height) * 110);
 
-    camera.position.set(0, 26, 95);
-    camera.lookAt(0, 14, 0);
+    camera.position.set(0, 16, 62);
+    camera.lookAt(0, 10, 4);
 
     rebuildBuildings();
     rebuildCars();
@@ -429,10 +437,10 @@ function initCity() {
 
     // Subtle mouse parallax so the depth actually reads as 3D
     const targetX = mouseX * 6;
-    const targetY = 26 + mouseY * 3;
+    const targetY = 16 + mouseY * 3;
     camera.position.x += (targetX - camera.position.x) * 0.02;
     camera.position.y += (targetY - camera.position.y) * 0.02;
-    camera.lookAt(0, 14, 0);
+    camera.lookAt(0, 10, 4);
 
     renderer.render(scene, camera);
 
