@@ -331,7 +331,7 @@ function initCity() {
     streetlamps.forEach(l => scene.remove(l.mesh));
     streetlamps = [];
 
-    const poleMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x9a9a9a, metalness: 0.4, roughness: 0.45, emissive: 0x222222 });
     const glowMat = new THREE.MeshBasicMaterial({ color: 0xffe8b0 });
 
     [SIDEWALK_NEAR_Z, SIDEWALK_FAR_Z].forEach(z => {
@@ -370,16 +370,17 @@ function initCity() {
   }
 
   // -------------------------
-  // Traffic spacing — prevents cars in the same lane/direction
-  // from phasing through one another by clamping a trailing car
-  // to stay at least one car-length-plus-buffer behind the one
-  // ahead of it.
+  // Traffic spacing / lane changes — two lanes per direction so a
+  // car that catches up to slower traffic can actually merge over
+  // and pass, instead of just stacking up behind it. Falls back to
+  // a hard clamp within a lane so nothing can ever phase through.
   // -------------------------
 
-  function enforceSpacing(list, direction) {
+  const LANE_OFFSETS = [1.6, 3.4]; // two lane positions (from center) per direction
 
-    const lane = list.filter(v => Math.sign(v.speed) === direction);
-    // Sort by how far along the direction of travel each vehicle is
+  function enforceSpacingLane(list, direction, laneIndex) {
+
+    const lane = list.filter(v => Math.sign(v.speed) === direction && v.laneIndex === laneIndex);
     lane.sort((a, b) => (a.mesh.position.x * direction) - (b.mesh.position.x * direction));
 
     for (let i = lane.length - 2; i >= 0; i--) {
@@ -392,6 +393,49 @@ function initCity() {
         behind.mesh.position.x = (aheadProgress - gapNeeded) * direction;
       }
     }
+
+  }
+
+  function updateLaneChanges(list, direction, dt) {
+
+    list.forEach(v => {
+
+      if (Math.sign(v.speed) !== direction) return;
+      if (v.laneCooldown > 0) v.laneCooldown -= dt;
+
+      const selfProgress = v.mesh.position.x * direction;
+
+      // Find the nearest car ahead in the same lane
+      let leaderGap = Infinity;
+      list.forEach(o => {
+        if (o === v || Math.sign(o.speed) !== direction || o.laneIndex !== v.laneIndex) return;
+        const diff = (o.mesh.position.x * direction) - selfProgress;
+        if (diff > 0 && diff < leaderGap) leaderGap = diff;
+      });
+
+      const gapNeeded = v.length / 2 + 2 + 1.6; // roughly one car ahead + buffer
+      const wantsToSwitch = leaderGap < gapNeeded * 1.6 && v.laneCooldown <= 0;
+
+      if (wantsToSwitch) {
+
+        const otherLane = 1 - v.laneIndex;
+        const blocked = list.some(o => {
+          if (o === v || Math.sign(o.speed) !== direction || o.laneIndex !== otherLane) return false;
+          return Math.abs((o.mesh.position.x * direction) - selfProgress) < gapNeeded * 1.2;
+        });
+
+        if (!blocked) {
+          v.laneIndex = otherLane;
+          v.targetZ = LANE_OFFSETS[otherLane] * direction;
+          v.laneCooldown = 3 + Math.random() * 2;
+        }
+
+      }
+
+      // Smoothly glide toward the current target lane
+      v.mesh.position.z += (v.targetZ - v.mesh.position.z) * 0.04;
+
+    });
 
   }
 
@@ -446,14 +490,18 @@ function initCity() {
     });
 
     const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), headMat);
-    head.position.set(bodyLen / 2 + 0.1, body.position.y, 0);
-    group.add(head);
-
     const tailMat = new THREE.MeshBasicMaterial({ color: 0xff3333 });
-    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), tailMat);
-    tail.position.set(-bodyLen / 2 - 0.1, body.position.y, 0);
-    group.add(tail);
+    const lightZOffset = bodyW / 2 - 0.15;
+
+    [lightZOffset, -lightZOffset].forEach(zOff => {
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), headMat);
+      head.position.set(bodyLen / 2 + 0.08, body.position.y, zOff);
+      group.add(head);
+
+      const tail = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 8), tailMat);
+      tail.position.set(-bodyLen / 2 - 0.08, body.position.y, zOff);
+      group.add(tail);
+    });
 
     group.scale.setScalar(scale);
 
@@ -473,12 +521,14 @@ function initCity() {
 
       const direction = Math.random() < 0.5 ? 1 : -1;
       const mesh = makeCar(colors[Math.floor(Math.random() * colors.length)], false);
+      const laneIndex = Math.random() < 0.5 ? 0 : 1;
+      const laneZ = LANE_OFFSETS[laneIndex] * direction;
 
       mesh.rotation.y = direction > 0 ? 0 : Math.PI;
-      mesh.position.set((Math.random() - 0.5) * streetWidthWorld, GROUND_Y, 2.5 * direction);
+      mesh.position.set((Math.random() - 0.5) * streetWidthWorld, GROUND_Y, laneZ);
 
       scene.add(mesh);
-      cars.push({ mesh, speed: (0.06 + Math.random() * 0.08) * direction, length: 3.3, lane: 2.5 });
+      cars.push({ mesh, speed: (0.06 + Math.random() * 0.08) * direction, length: 3.3, laneIndex, targetZ: laneZ, laneCooldown: 0 });
 
     }
 
@@ -495,7 +545,7 @@ function initCity() {
     mesh.position.set(direction > 0 ? -streetWidthWorld / 2 - 6 : streetWidthWorld / 2 + 6, GROUND_Y, lane * direction);
 
     scene.add(mesh);
-    supercars.push({ mesh, speed: 0.45 * direction, length: 4.4 * 1.15, lane });
+    supercars.push({ mesh, speed: 0.45 * direction, length: 4.4 * 1.15, laneIndex: 0 });
 
   }
 
@@ -537,7 +587,7 @@ function initCity() {
     pedestrians.forEach(p => scene.remove(p.mesh));
     pedestrians = [];
 
-    const colors = [0x99a3ff, 0xffb199, 0xffe08a, 0xa0e0c0, 0xd9d9d9];
+    const colors = [0xffffff];
     const count = Math.max(5, Math.floor(streetWidthWorld / 16));
 
     for (let i = 0; i < count; i++) {
@@ -632,8 +682,13 @@ function initCity() {
       if (car.speed < 0 && car.mesh.position.x < -limit) car.mesh.position.x = limit;
     });
 
-    enforceSpacing(cars, 1);
-    enforceSpacing(cars, -1);
+    const dt = 1 / 60;
+    updateLaneChanges(cars, 1, dt);
+    updateLaneChanges(cars, -1, dt);
+    enforceSpacingLane(cars, 1, 0);
+    enforceSpacingLane(cars, 1, 1);
+    enforceSpacingLane(cars, -1, 0);
+    enforceSpacingLane(cars, -1, 1);
 
     // Supercars: spawn occasionally, remove once off-screen
     if (now > nextSupercarAt) {
@@ -641,8 +696,8 @@ function initCity() {
       nextSupercarAt = now + 7000 + Math.random() * 9000;
     }
     supercars.forEach(sc => { sc.mesh.position.x += sc.speed; });
-    enforceSpacing(supercars, 1);
-    enforceSpacing(supercars, -1);
+    enforceSpacingLane(supercars, 1, 0);
+    enforceSpacingLane(supercars, -1, 0);
     supercars = supercars.filter(sc => {
       const limit = streetWidthWorld / 2 + 10;
       const gone = Math.abs(sc.mesh.position.x) > limit;
