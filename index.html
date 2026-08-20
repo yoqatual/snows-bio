@@ -8,6 +8,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="cat.png">
+
+  <!-- Import map: lets city.js "import * as THREE from 'three'" and
+       pull in the postprocessing add-ons (needed for the bloom glow)
+       straight from the CDN as ES modules. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
   <canvas id="stars"></canvas>
@@ -57,9 +69,12 @@
     </div>
   </div>
   <audio id="bgMusic" preload="auto"></audio>
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+  <!-- city.js is now an ES module (needed for the three/addons imports).
+       It attaches window.initCity itself, so script.js can still call
+       initCity() as a normal global function on window "load". -->
+  <script type="module" src="city.js"></script>
   <script src="oneko.js"></script>
-  <script src="city.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
