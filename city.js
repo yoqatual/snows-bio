@@ -37,7 +37,7 @@ function initCity() {
 
   const LAYER_Z = [-74, -44, -14];           // back, mid, front building rows
   const LAYER_COLOR = [0x3a3a3a, 0x232323, 0x0a0a0a];
-  const LAYER_WINDOW = ["#7a7a7a", "#a8a8a8", "#e0e0e0"];
+  const LAYER_WINDOW = ["#6a6a6a", "#8f8f8f", "#b5b5b5"];
   const LAYER_HEIGHT_SCALE = [22, 30, 40];
 
   const CAMERA_BASE = { x: 0, y: 20, z: 50 };
@@ -71,7 +71,7 @@ function initCity() {
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.35, 0.9);
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0.35, 0.95);
   composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
 
