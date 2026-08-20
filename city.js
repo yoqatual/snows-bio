@@ -370,6 +370,32 @@ function initCity() {
   }
 
   // -------------------------
+  // Traffic spacing — prevents cars in the same lane/direction
+  // from phasing through one another by clamping a trailing car
+  // to stay at least one car-length-plus-buffer behind the one
+  // ahead of it.
+  // -------------------------
+
+  function enforceSpacing(list, direction) {
+
+    const lane = list.filter(v => Math.sign(v.speed) === direction);
+    // Sort by how far along the direction of travel each vehicle is
+    lane.sort((a, b) => (a.mesh.position.x * direction) - (b.mesh.position.x * direction));
+
+    for (let i = lane.length - 2; i >= 0; i--) {
+      const behind = lane[i];
+      const ahead = lane[i + 1];
+      const aheadProgress = ahead.mesh.position.x * direction;
+      const behindProgress = behind.mesh.position.x * direction;
+      const gapNeeded = behind.length / 2 + ahead.length / 2 + 1;
+      if (aheadProgress - behindProgress < gapNeeded) {
+        behind.mesh.position.x = (aheadProgress - gapNeeded) * direction;
+      }
+    }
+
+  }
+
+  // -------------------------
   // Cars — normal traffic plus the occasional supercar
   // -------------------------
 
@@ -441,7 +467,7 @@ function initCity() {
     cars = [];
 
     const carCount = Math.max(4, Math.floor(streetWidthWorld / 22));
-    const colors = [0xffffff, 0xdddddd, 0xcfd8ff, 0xffd9a0];
+    const colors = [0xffffff, 0xdddddd, 0x9a9a9a, 0x555555, 0x1a1a1a];
 
     for (let i = 0; i < carCount; i++) {
 
@@ -452,7 +478,7 @@ function initCity() {
       mesh.position.set((Math.random() - 0.5) * streetWidthWorld, GROUND_Y, 2.5 * direction);
 
       scene.add(mesh);
-      cars.push({ mesh, speed: (0.06 + Math.random() * 0.08) * direction });
+      cars.push({ mesh, speed: (0.06 + Math.random() * 0.08) * direction, length: 3.3, lane: 2.5 });
 
     }
 
@@ -461,14 +487,15 @@ function initCity() {
   function spawnSupercar() {
 
     const direction = Math.random() < 0.5 ? 1 : -1;
-    const colors = [0xff2d2d, 0xffe600, 0x2dd4ff];
+    const colors = [0xffffff, 0x111111, 0xbbbbbb];
     const mesh = makeCar(colors[Math.floor(Math.random() * colors.length)], true);
 
+    const lane = ROAD_HALF_WIDTH - 0.8; // outer lane, clear of normal traffic
     mesh.rotation.y = direction > 0 ? 0 : Math.PI;
-    mesh.position.set(direction > 0 ? -streetWidthWorld / 2 - 6 : streetWidthWorld / 2 + 6, GROUND_Y, 2.5 * direction);
+    mesh.position.set(direction > 0 ? -streetWidthWorld / 2 - 6 : streetWidthWorld / 2 + 6, GROUND_Y, lane * direction);
 
     scene.add(mesh);
-    supercars.push({ mesh, speed: 0.45 * direction });
+    supercars.push({ mesh, speed: 0.45 * direction, length: 4.4 * 1.15, lane });
 
   }
 
@@ -605,12 +632,17 @@ function initCity() {
       if (car.speed < 0 && car.mesh.position.x < -limit) car.mesh.position.x = limit;
     });
 
+    enforceSpacing(cars, 1);
+    enforceSpacing(cars, -1);
+
     // Supercars: spawn occasionally, remove once off-screen
     if (now > nextSupercarAt) {
       spawnSupercar();
       nextSupercarAt = now + 7000 + Math.random() * 9000;
     }
     supercars.forEach(sc => { sc.mesh.position.x += sc.speed; });
+    enforceSpacing(supercars, 1);
+    enforceSpacing(supercars, -1);
     supercars = supercars.filter(sc => {
       const limit = streetWidthWorld / 2 + 10;
       const gone = Math.abs(sc.mesh.position.x) > limit;
