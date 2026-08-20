@@ -37,7 +37,7 @@ function initCity() {
 
   const LAYER_Z = [-74, -44, -14];           // back, mid, front building rows
   const LAYER_COLOR = [0x3a3a3a, 0x232323, 0x0a0a0a];
-  const LAYER_WINDOW = ["#8a8a8a", "#c7c7c7", "#ffffff"];
+  const LAYER_WINDOW = ["#7a7a7a", "#a8a8a8", "#e0e0e0"];
   const LAYER_HEIGHT_SCALE = [22, 30, 40];
 
   const CAMERA_BASE = { x: 0, y: 20, z: 50 };
@@ -65,13 +65,13 @@ function initCity() {
   const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 0.85;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.85, 0.4, 0.78);
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.35, 0.9);
   composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
 
