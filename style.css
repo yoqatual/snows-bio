@@ -34,13 +34,6 @@ canvas#stars {
   pointer-events: none;
 }
 
-canvas#city {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
 #intro {
   position: fixed;
   inset: 0;
