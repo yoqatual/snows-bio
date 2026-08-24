@@ -27,6 +27,12 @@ const config = {
       artist: "mthu",
       src: "its like im not even here.mp3",
       art: "mthu.png"
+    },
+    {
+      title: "deer in headlights",
+      artist: "i wanna be a jack-o-lantern",
+      src: "deer in headlights.mp3",
+      art: "deer in headlights.jpg"
     }
   ],
 
