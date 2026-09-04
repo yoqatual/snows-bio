@@ -11,6 +11,12 @@ const config = {
 
   songs: [
     {
+      title: "cry",
+      artist: "cigarettes after sex",
+      src: "cry.mp3",
+      art: "cry.jpg"
+    },
+    {
       title: "deer in headlights",
       artist: "i wanna be a jack-o-lantern",
       src: "deer in headlights.mp3",
@@ -34,13 +40,12 @@ const config = {
       src: "its like im not even here.mp3",
       art: "mthu.png"
     }
-    
   ],
 
   bio: [
     "hi, im snow nice to meet you.",
     "i really like gaming, piano, keyboards and sleeping ",
-    "straight"
+    "he/him straight"
   ],
 
   projects: [
