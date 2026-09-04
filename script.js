@@ -11,6 +11,12 @@ const config = {
 
   songs: [
     {
+      title: "this one is for u <3",
+      artist: "KETENSHI",
+      src: "this one is for u.mp3",
+      art: "this one is for u.jpg"
+    },
+    {
       title: "cry",
       artist: "cigarettes after sex",
       src: "cry.mp3",
