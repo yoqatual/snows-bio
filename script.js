@@ -49,9 +49,9 @@ const config = {
   ],
 
   bio: [
-    "hi, im snow nice to meet you.",
-    "i really like gaming, piano, keyboards and sleeping ",
-    "he/him straight"
+    "hiya, im snow ",
+    "i lowkenuinely like gaming, piano, keyboards and sleeping ",
+    "straight"
   ],
 
   projects: [
