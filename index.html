@@ -11,7 +11,9 @@
 
   <!-- Import map: lets city.js "import * as THREE from 'three'" and
        pull in the postprocessing add-ons (needed for the bloom glow)
-       straight from the CDN as ES modules. -->
+       straight from the CDN as ES modules. Currently unused since
+       city.js doesn't import anything, but left here in case you
+       add Three.js code later. -->
   <script type="importmap">
   {
     "imports": {
@@ -70,10 +72,11 @@
   </div>
   <audio id="bgMusic" preload="auto"></audio>
 
-  <!-- city.js is now an ES module (needed for the three/addons imports).
-       It attaches window.initCity itself, so script.js can still call
-       initCity() as a normal global function on window "load". -->
-  <script type="module" src="city.js"></script>
+  <!-- city.js is now a plain classic script (not type="module"), since
+       it doesn't import anything from three/addons. This means
+       initCity() becomes a normal global function that script.js can
+       call directly on window "load". -->
+  <script src="city.js"></script>
   <script src="oneko.js"></script>
   <script src="script.js"></script>
 </body>
